@@ -200,5 +200,5 @@ wandb:
   name: 'pretrain'
 
 trainer:
-  max_epochs: 20
-  log_every_n_steps: 5000
+  max_epochs: 50
+  log_every_n_steps: 200
