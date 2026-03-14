@@ -5,7 +5,7 @@
 import numpy as np
 import sys
 import os
-import yaml  # pip install pyyaml
+import yaml  
 import gc
 import torch
 import lightning as L
@@ -14,8 +14,6 @@ import random
 from torch.utils.data import DataLoader
 from lightning.pytorch.loggers import WandbLogger
 from lightning.pytorch.callbacks import ModelCheckpoint
-# pip install torchinfo
-# from torchinfo import summary
 
 from autoencoder import Autoencoder
 from patchdataset import PatchDataset
@@ -46,7 +44,7 @@ def flatten_patches(patches):
     all_patches = [patch for image_patches in patches for patch in image_patches]
     return all_patches
 
-print("loading config file")
+print("======= Step1: loading config file =======")
 config_path = sys.argv[1]
 assert os.path.exists(config_path), f"Config file {config_path} not found"
 config = yaml.safe_load(open(config_path, "r"))
@@ -61,15 +59,15 @@ torch.cuda.empty_cache()
 stage = config["stage"]
 assert stage in ["pretrain", "finetune"], "stage must be 'pretrain' or 'finetune'"
 
-print(f"running stage = {stage}")
+print(f"======= Step2: running stage = {stage} =======")
 
 if stage == "pretrain":
     # use unlabeled images
-    filepaths = config["data"]["pretrain_filepaths"]
+    path = config["data"]["pretrain_path"]
 
     # image-level split
     train_files, val_files = split_files(
-        filepaths,
+        path,
         train_fraction=config["data"].get("train_fraction", 0.8),
         seed=seed,
     )
@@ -77,7 +75,7 @@ if stage == "pretrain":
     print("making train patch data for pretraining")
     _, train_patches_nested, norm = make_data(
         patch_size=config["data"]["patch_size"],
-        filepaths=train_files,
+        path=train_files,
         norm=None,
         return_norm=True,
     )
@@ -85,7 +83,7 @@ if stage == "pretrain":
     print("making val patch data for pretraining")
     _, val_patches_nested = make_data(
         patch_size=config["data"]["patch_size"],
-        filepaths=val_files,
+        path=val_files,
         norm=norm,
         return_norm=False,
     )
@@ -104,11 +102,11 @@ if stage == "pretrain":
 
 elif stage == "finetune":
     # use labeled training images only
-    filepaths = config["data"]["finetune_filepaths"]
+    path = config["data"]["finetune_path"]
 
     # image-level split
     train_files, val_files = split_files(
-        filepaths,
+        path,
         train_fraction=config["data"].get("train_fraction", 0.8),
         seed=seed,
     )
@@ -121,7 +119,7 @@ elif stage == "finetune":
     print("making train patch data for finetuning")
     _, train_patches_nested = make_data(
         patch_size=config["data"]["patch_size"],
-        filepaths=train_files,
+        path=train_files,
         norm=norm,
         return_norm=False,
     )
@@ -129,7 +127,7 @@ elif stage == "finetune":
     print("making val patch data for finetuning")
     _, val_patches_nested = make_data(
         patch_size=config["data"]["patch_size"],
-        filepaths=val_files,
+        path=val_files,
         norm=norm,
         return_norm=False,
     )
@@ -156,17 +154,11 @@ val_dataset = PatchDataset(val_patches)
 dataloader_train = DataLoader(train_dataset, **config["dataloader_train"])
 dataloader_val = DataLoader(val_dataset, **config["dataloader_val"])
 
-print("initializing model")
-# Initialize an autoencoder object
-model = Autoencoder(
-    optimizer_config=config["optimizer"],
-    patch_size=config["data"]["patch_size"],
-    **config["autoencoder"],
-)
+print("model ready")
 print(model)
 # print(summary(model, (8, 9, 9)))
 
-print("preparing for training")
+print("======= Step3: preparing for training =======")
 # configure the settings for making checkpoints
 checkpoint_callback = ModelCheckpoint(**config["checkpoint"])
 
@@ -174,16 +166,20 @@ checkpoint_callback = ModelCheckpoint(**config["checkpoint"])
 if "SLURM_JOB_ID" in os.environ:
     config["slurm_job_id"] = os.environ["SLURM_JOB_ID"]
 
-# initialize the wandb logger, giving it our config file
 # to save, and also configuring the logger itself.
-wandb_logger = WandbLogger(config=config, **config["wandb"])
+use_wandb = config.get("use_wandb", True)
+
+if use_wandb:
+    wandb_logger = WandbLogger(config=config, **config["wandb"])
+else:
+    wandb_logger = None
 
 # initialize the trainer
 trainer = L.Trainer(
     logger=wandb_logger, callbacks=[checkpoint_callback], **config["trainer"]
 )
 
-print("training")
+print("======= Step4: training =======")
 trainer.fit(model, train_dataloaders=dataloader_train, val_dataloaders=dataloader_val)
 
 # clean up memory
