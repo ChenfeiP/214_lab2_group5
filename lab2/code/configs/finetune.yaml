@@ -7,12 +7,12 @@ data:
   train_fraction: 0.8
 
  
-  finetune_filepaths:
+  finetune_path:
     - ../image_data_float32/O013257.npz
     - ../image_data_float32/O013490.npz
     - ../image_data_float32/O012791.npz
 
-  norm_stats_load_path: results/pretrain/norm_stats.npz
+  norm_load_path: results/pretrain/norm_stats.npz
 
   pretrained_checkpoint_path: results/pretrain/checkpoints/last.ckpt
 
