@@ -75,7 +75,7 @@ class Autoencoder(L.LightningModule):
         # in the embedding?
 
         # log the training loss for experiment tracking purposes
-        self.log("train_loss", loss)
+        self.log("train_loss", loss, prog_bar=True, on_step=True, on_epoch=True, batch_size=batch.shape[0])
         return loss
 
     def validation_step(self, batch, batch_idx):
@@ -96,7 +96,7 @@ class Autoencoder(L.LightningModule):
         # between the input tensor and the decoded tensor
         loss = torch.nn.functional.mse_loss(batch, decoded)
         # log the validation loss for experiment tracking purposes
-        self.log("val_loss", loss)
+        self.log("val_loss", loss, prog_bar=True, on_step=False, on_epoch=True, batch_size=batch.shape[0])
         return loss
 
     def configure_optimizers(self):
