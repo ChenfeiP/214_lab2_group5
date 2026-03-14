@@ -46,4 +46,4 @@ wandb:
 
 trainer:
   max_epochs: 5
-  log_every_n_steps: 5000
+  log_every_n_steps: 200
