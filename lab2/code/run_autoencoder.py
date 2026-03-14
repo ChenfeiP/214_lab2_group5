@@ -8,6 +8,7 @@ import os
 import yaml  
 import gc
 import torch
+torch.set_float32_matmul_precision("medium")
 import lightning as L
 import random
 
