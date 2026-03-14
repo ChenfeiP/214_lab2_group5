@@ -7,7 +7,7 @@
 #SBATCH --job-name=lab2-autoencoder
 #SBATCH --partition=GPU-shared
 #SBATCH --gpus=h100-80:1
-#SBATCH --cpus-per-task=4
+#SBATCH --cpus-per-task=8
 #SBATCH --time=04:00:00
 #SBATCH --output=slurm-%j.out
 #SBATCH --error=slurm-%j.err
