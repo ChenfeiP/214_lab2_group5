@@ -1,5 +1,6 @@
 # EXAMPLE USAGE:
-# python run_autoencoder.py configs/default.yaml
+# python run_autoencoder.py configs/pretrain.yaml
+# python run_autoencoder.py configs/finetune.yaml
 
 import numpy as np
 import sys
@@ -8,6 +9,7 @@ import yaml  # pip install pyyaml
 import gc
 import torch
 import lightning as L
+import random
 
 from torch.utils.data import DataLoader
 from lightning.pytorch.loggers import WandbLogger
@@ -17,33 +19,136 @@ from lightning.pytorch.callbacks import ModelCheckpoint
 
 from autoencoder import Autoencoder
 from patchdataset import PatchDataset
-from data import make_data
+from data import make_data, save_norm, load_norm
 
+def set_seed(seed):
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
+
+def split_files(path, train_fraction=0.8, seed=42):
+    rng = np.random.default_rng(seed)
+    idx = np.arange(len(path))
+    rng.shuffle(idx)
+
+    n_train = max(1, int(train_fraction * len(path)))
+    train_idx = idx[:n_train]
+    val_idx = idx[n_train:]
+
+    train_files = [path[i] for i in train_idx]
+    val_files = [path[i] for i in val_idx]
+    return train_files, val_files
+
+
+def flatten_patches(patches):
+    all_patches = [patch for image_patches in patches for patch in image_patches]
+    return all_patches
 
 print("loading config file")
 config_path = sys.argv[1]
 assert os.path.exists(config_path), f"Config file {config_path} not found"
 config = yaml.safe_load(open(config_path, "r"))
 
+seed = config.get("seed", 42)
+set_seed(seed)
+
 # clean up memory
 gc.collect()
 torch.cuda.empty_cache()
 
-print("making the patch data")
-# get the patches
-_, patches = make_data(patch_size=config["data"]["patch_size"])
-# let's just combine the patches from all images into one list
-all_patches = [patch for image_patches in patches for patch in image_patches]
+stage = config["stage"]
+assert stage in ["pretrain", "finetune"], "stage must be 'pretrain' or 'finetune'"
 
-# randomly do train/val split by individual patches
-# (is this the best idea?)
-train_bool = np.random.rand(len(all_patches)) < 0.8
-train_idx = np.where(train_bool)[0]
-val_idx = np.where(~train_bool)[0]
+print(f"running stage = {stage}")
 
-# create train and val datasets
-train_patches = [all_patches[i] for i in train_idx]
-val_patches = [all_patches[i] for i in val_idx]
+if stage == "pretrain":
+    # use unlabeled images
+    filepaths = config["data"]["pretrain_filepaths"]
+
+    # image-level split
+    train_files, val_files = split_files(
+        filepaths,
+        train_fraction=config["data"].get("train_fraction", 0.8),
+        seed=seed,
+    )
+
+    print("making train patch data for pretraining")
+    _, train_patches_nested, norm = make_data(
+        patch_size=config["data"]["patch_size"],
+        filepaths=train_files,
+        norm=None,
+        return_norm=True,
+    )
+
+    print("making val patch data for pretraining")
+    _, val_patches_nested = make_data(
+        patch_size=config["data"]["patch_size"],
+        filepaths=val_files,
+        norm=norm,
+        return_norm=False,
+    )
+
+    # save normalization stats
+    norm_path = config["data"]["norm_save_path"]
+    os.makedirs(os.path.dirname(norm_path), exist_ok=True)
+    save_norm(norm, norm_path)
+    print(f"saved norm stats to {norm_path}")
+
+    model = Autoencoder(
+        optimizer_config=config["optimizer"],
+        patch_size=config["data"]["patch_size"],
+        **config["autoencoder"],
+    )
+
+elif stage == "finetune":
+    # use labeled training images only
+    filepaths = config["data"]["finetune_filepaths"]
+
+    # image-level split
+    train_files, val_files = split_files(
+        filepaths,
+        train_fraction=config["data"].get("train_fraction", 0.8),
+        seed=seed,
+    )
+
+    # load normalization stats from pretraining
+    norm_path = config["data"]["norm_load_path"]
+    norm = load_norm(norm_path)
+    print(f"loaded norm stats from {norm_path}")
+
+    print("making train patch data for finetuning")
+    _, train_patches_nested = make_data(
+        patch_size=config["data"]["patch_size"],
+        filepaths=train_files,
+        norm=norm,
+        return_norm=False,
+    )
+
+    print("making val patch data for finetuning")
+    _, val_patches_nested = make_data(
+        patch_size=config["data"]["patch_size"],
+        filepaths=val_files,
+        norm=norm,
+        return_norm=False,
+    )
+
+    print("loading pretrained checkpoint")
+    pretrained_ckpt = config["data"]["pretrained_checkpoint_path"]
+    model = Autoencoder.load_from_checkpoint(
+        pretrained_ckpt,
+        optimizer_config=config["optimizer"],
+        patch_size=config["data"]["patch_size"],
+        **config["autoencoder"],
+    )
+
+train_patches = flatten_patches(train_patches_nested)
+val_patches = flatten_patches(val_patches_nested)
+
+print(f"num train patches: {len(train_patches)}")
+print(f"num val patches: {len(val_patches)}")
+
 train_dataset = PatchDataset(train_patches)
 val_dataset = PatchDataset(val_patches)
 
