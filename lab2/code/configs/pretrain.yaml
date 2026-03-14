@@ -6,7 +6,7 @@ data:
   patch_size: 9
   train_fraction: 0.8
 
-  pretrain_filepaths:
+  pretrain_path:
     - ../image_data_float32/O002539.npz
     - ../image_data_float32/O002772.npz
     - ../image_data_float32/O003005.npz
@@ -169,7 +169,7 @@ data:
     - ../image_data_float32/O120204.npz
     - ../image_data_float32/O120437.npz
 
-  norm_stats_save_path: results/pretrain/norm_stats.npz
+  norm_save_path: results/pretrain/norm_stats.npz
 
 dataloader_train:
   batch_size: 256
