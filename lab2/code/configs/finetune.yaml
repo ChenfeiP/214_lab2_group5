@@ -18,13 +18,13 @@ data:
 
 dataloader_train:
   batch_size: 256
-  shuffle: true
   num_workers: 4
+  shuffle: True
 
 dataloader_val:
   batch_size: 256
-  shuffle: false
   num_workers: 4
+  shuffle: False
 
 optimizer:
   lr: 0.0001
@@ -34,17 +34,16 @@ autoencoder:
   embedding_size: 8
 
 checkpoint:
-  dirpath: results/finetune/checkpoints
-  filename: finetune-{epoch:03d}-{val_loss:.4f}
-  save_top_k: 1
-  monitor: val_loss
-  mode: min
+  save_top_k: 3
+  monitor: 'val_loss'
+  mode: 'min'
+  filename: 'finetune-{epoch:03d}'
+  dirpath: 'checkpoints/finetune'
 
 wandb:
-  project: lab2-autoencoder
-  name: finetune-run
+  project: 'lab2-autoencoder'
+  name: 'finetune'
 
 trainer:
-  max_epochs: 10
-  accelerator: auto
-  devices: 1
+  max_epochs: 3
+  log_every_n_steps: 50
