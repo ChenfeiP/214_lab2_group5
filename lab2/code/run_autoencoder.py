@@ -11,6 +11,7 @@ import torch
 torch.set_float32_matmul_precision("medium")
 import lightning as L
 import random
+import glob
 
 from torch.utils.data import DataLoader
 from lightning.pytorch.loggers import WandbLogger
@@ -136,7 +137,12 @@ elif stage == "finetune":
     )
 
     print("loading pretrained checkpoint")
-    pretrained_ckpt = config["data"]["pretrained_checkpoint_path"]
+    ckpt_dir = config["data"]["pretrained_checkpoint_dir"]
+    ckpt_files = sorted(glob.glob(os.path.join(ckpt_dir, "*.ckpt")))
+    assert ckpt_files, f"No checkpoint found in {ckpt_dir}"
+
+    pretrained_ckpt = ckpt_files[1]
+    print(f"loading pretrained checkpoint: {pretrained_ckpt}")
     model = Autoencoder.load_from_checkpoint(
         pretrained_ckpt,
         optimizer_config=config["optimizer"],
