@@ -1,14 +1,16 @@
 #!/bin/bash
 
-# EXAMPLE USAGE:
+# how to use
 # sbatch job.sh configs/pretrain.yaml
 # sbatch job.sh configs/finetune.yaml
 
-
 #SBATCH --job-name=lab2-autoencoder
-#SBATCH --partition=gpu
-#SBATCH --gres=gpu:h100-80:1
+#SBATCH --partition=GPU-shared
+#SBATCH --gpus=h100-80:1
 #SBATCH --cpus-per-task=4
+#SBATCH --time=04:00:00
+#SBATCH --output=slurm-%j.out
+#SBATCH --error=slurm-%j.err
 
 set -e
 
@@ -17,5 +19,21 @@ if [ -z "$1" ]; then
     exit 1
 fi
 
-echo "Running with config: $1"
-python run_autoencoder.py "$1"
+# 初始化 conda
+source ~/miniconda3/etc/profile.d/conda.sh
+conda activate env_214
+
+echo "=============================="
+echo "Job started on $(date)"
+echo "Host: $(hostname)"
+echo "Working directory: $(pwd)"
+echo "Config: $1"
+echo "Python: $(which python)"
+python --version
+echo "=============================="
+
+srun python run_autoencoder.py "$1"
+
+echo "=============================="
+echo "Job finished on $(date)"
+echo "=============================="
