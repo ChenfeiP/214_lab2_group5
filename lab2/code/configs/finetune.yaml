@@ -12,18 +12,18 @@ data:
     - ../image_data_float32/O013490.npz
     - ../image_data_float32/O012791.npz
 
-  norm_load_path: results/pretrain/norm_stats.npz
+  norm_load_path: checkpoints/pretrain/norm_stats.npz
 
-  pretrained_checkpoint_path: results/pretrain/checkpoints/last.ckpt
+  pretrained_checkpoint_dir: checkpoints/pretrain
 
 dataloader_train:
-  batch_size: 256
-  num_workers: 4
+  batch_size: 1024
+  num_workers: 8
   shuffle: True
 
 dataloader_val:
-  batch_size: 256
-  num_workers: 4
+  batch_size: 1024
+  num_workers: 8
   shuffle: False
 
 optimizer:
@@ -45,5 +45,5 @@ wandb:
   name: 'finetune'
 
 trainer:
-  max_epochs: 3
-  log_every_n_steps: 50
+  max_epochs: 5
+  log_every_n_steps: 5000
