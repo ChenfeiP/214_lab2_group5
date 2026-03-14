@@ -1,6 +1,6 @@
 seed: 42
 stage: finetune
-use_wandb: true
+use_wandb: false
 
 data:
   patch_size: 9
