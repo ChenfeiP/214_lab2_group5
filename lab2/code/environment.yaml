@@ -2,12 +2,19 @@ name: env_214
 channels:
   - defaults
 dependencies:
-  - python
+  - python=3.10
+  - pip
   - pip:
-    - numpy
-    - pandas
-    - matplotlib
-    - seaborn
-    - scikit-learn
-    - jupyterlab
-    - torch
+      - numpy
+      - pandas
+      - matplotlib
+      - seaborn
+      - scikit-learn
+      - jupyterlab
+      - torch
+      - torchvision
+      - torchaudio
+      - lightning
+      - pyyaml
+      - wandb
+      - tqdm
