@@ -169,16 +169,16 @@ data:
     - ../image_data_float32/O120204.npz
     - ../image_data_float32/O120437.npz
 
-  norm_save_path: results/pretrain/norm_stats.npz
+  norm_save_path: checkpoints/pretrain/norm_stats.npz
 
 dataloader_train:
-  batch_size: 256
-  num_workers: 4
+  batch_size: 1024
+  num_workers: 8
   shuffle: True
 
 dataloader_val:
-  batch_size: 256
-  num_workers: 4
+  batch_size: 1024
+  num_workers: 8
   shuffle: False
 
 optimizer:
@@ -200,5 +200,5 @@ wandb:
   name: 'pretrain'
 
 trainer:
-  max_epochs: 10
-  log_every_n_steps: 50
+  max_epochs: 20
+  log_every_n_steps: 5000
