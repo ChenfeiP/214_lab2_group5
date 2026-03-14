@@ -45,10 +45,12 @@ def flatten_patches(patches):
     all_patches = [patch for image_patches in patches for patch in image_patches]
     return all_patches
 
+
 print("======= Step1: loading config file =======")
 config_path = sys.argv[1]
 assert os.path.exists(config_path), f"Config file {config_path} not found"
-config = yaml.safe_load(open(config_path, "r"))
+with open(config_path, "r") as f:
+    config = yaml.safe_load(f)
 
 seed = config.get("seed", 42)
 set_seed(seed)
@@ -154,6 +156,11 @@ val_dataset = PatchDataset(val_patches)
 # create train and val dataloaders
 dataloader_train = DataLoader(train_dataset, **config["dataloader_train"])
 dataloader_val = DataLoader(val_dataset, **config["dataloader_val"])
+
+del train_patches_nested, val_patches_nested
+del train_patches, val_patches
+gc.collect()
+torch.cuda.empty_cache()
 
 print("model ready")
 print(model)
