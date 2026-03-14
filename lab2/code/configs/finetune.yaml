@@ -45,5 +45,5 @@ wandb:
   name: 'finetune'
 
 trainer:
-  max_epochs: 5
+  max_epochs: 10
   log_every_n_steps: 200
