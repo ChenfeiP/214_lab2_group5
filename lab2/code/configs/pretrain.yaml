@@ -1,0 +1,205 @@
+seed: 42
+stage: pretrain
+use_wandb: true
+
+data:
+  patch_size: 9
+  train_fraction: 0.8
+
+  pretrain_filepaths:
+    - ../image_data_float32/O002539.npz
+    - ../image_data_float32/O002772.npz
+    - ../image_data_float32/O003005.npz
+    - ../image_data_float32/O003238.npz
+    - ../image_data_float32/O003471.npz
+    - ../image_data_float32/O007199.npz
+    - ../image_data_float32/O007432.npz
+    - ../image_data_float32/O007665.npz
+    - ../image_data_float32/O007898.npz
+    - ../image_data_float32/O008131.npz
+    - ../image_data_float32/O008364.npz
+    - ../image_data_float32/O008597.npz
+    - ../image_data_float32/O008830.npz
+    - ../image_data_float32/O012558.npz
+    - ../image_data_float32/O013024.npz
+    - ../image_data_float32/O013723.npz
+    - ../image_data_float32/O013956.npz
+    - ../image_data_float32/O014189.npz
+    - ../image_data_float32/O017917.npz
+    - ../image_data_float32/O018150.npz
+    - ../image_data_float32/O018383.npz
+    - ../image_data_float32/O018616.npz
+    - ../image_data_float32/O018849.npz
+    - ../image_data_float32/O019082.npz
+    - ../image_data_float32/O019315.npz
+    - ../image_data_float32/O023276.npz
+    - ../image_data_float32/O023509.npz
+    - ../image_data_float32/O023742.npz
+    - ../image_data_float32/O023975.npz
+    - ../image_data_float32/O024208.npz
+    - ../image_data_float32/O024441.npz
+    - ../image_data_float32/O024674.npz
+    - ../image_data_float32/O024907.npz
+    - ../image_data_float32/O028635.npz
+    - ../image_data_float32/O028868.npz
+    - ../image_data_float32/O029334.npz
+    - ../image_data_float32/O029567.npz
+    - ../image_data_float32/O029800.npz
+    - ../image_data_float32/O030033.npz
+    - ../image_data_float32/O033761.npz
+    - ../image_data_float32/O033994.npz
+    - ../image_data_float32/O034227.npz
+    - ../image_data_float32/O034460.npz
+    - ../image_data_float32/O034693.npz
+    - ../image_data_float32/O034926.npz
+    - ../image_data_float32/O035159.npz
+    - ../image_data_float32/O035392.npz
+    - ../image_data_float32/O039120.npz
+    - ../image_data_float32/O039353.npz
+    - ../image_data_float32/O039586.npz
+    - ../image_data_float32/O039819.npz
+    - ../image_data_float32/O040052.npz
+    - ../image_data_float32/O040285.npz
+    - ../image_data_float32/O040518.npz
+    - ../image_data_float32/O040751.npz
+    - ../image_data_float32/O044479.npz
+    - ../image_data_float32/O044712.npz
+    - ../image_data_float32/O044945.npz
+    - ../image_data_float32/O045178.npz
+    - ../image_data_float32/O045411.npz
+    - ../image_data_float32/O045644.npz
+    - ../image_data_float32/O045877.npz
+    - ../image_data_float32/O049838.npz
+    - ../image_data_float32/O050071.npz
+    - ../image_data_float32/O050304.npz
+    - ../image_data_float32/O050537.npz
+    - ../image_data_float32/O050770.npz
+    - ../image_data_float32/O051003.npz
+    - ../image_data_float32/O051236.npz
+    - ../image_data_float32/O055197.npz
+    - ../image_data_float32/O055430.npz
+    - ../image_data_float32/O055663.npz
+    - ../image_data_float32/O055896.npz
+    - ../image_data_float32/O056129.npz
+    - ../image_data_float32/O056362.npz
+    - ../image_data_float32/O056595.npz
+    - ../image_data_float32/O060323.npz
+    - ../image_data_float32/O060556.npz
+    - ../image_data_float32/O060789.npz
+    - ../image_data_float32/O061022.npz
+    - ../image_data_float32/O061255.npz
+    - ../image_data_float32/O061488.npz
+    - ../image_data_float32/O061721.npz
+    - ../image_data_float32/O061954.npz
+    - ../image_data_float32/O065915.npz
+    - ../image_data_float32/O066148.npz
+    - ../image_data_float32/O066381.npz
+    - ../image_data_float32/O066614.npz
+    - ../image_data_float32/O066847.npz
+    - ../image_data_float32/O067080.npz
+    - ../image_data_float32/O067313.npz
+    - ../image_data_float32/O071041.npz
+    - ../image_data_float32/O071274.npz
+    - ../image_data_float32/O071507.npz
+    - ../image_data_float32/O071740.npz
+    - ../image_data_float32/O071973.npz
+    - ../image_data_float32/O072206.npz
+    - ../image_data_float32/O072439.npz
+    - ../image_data_float32/O072672.npz
+    - ../image_data_float32/O076400.npz
+    - ../image_data_float32/O076633.npz
+    - ../image_data_float32/O076866.npz
+    - ../image_data_float32/O077099.npz
+    - ../image_data_float32/O077332.npz
+    - ../image_data_float32/O077798.npz
+    - ../image_data_float32/O081759.npz
+    - ../image_data_float32/O081992.npz
+    - ../image_data_float32/O082225.npz
+    - ../image_data_float32/O082458.npz
+    - ../image_data_float32/O082691.npz
+    - ../image_data_float32/O082924.npz
+    - ../image_data_float32/O083157.npz
+    - ../image_data_float32/O087118.npz
+    - ../image_data_float32/O087351.npz
+    - ../image_data_float32/O087584.npz
+    - ../image_data_float32/O087817.npz
+    - ../image_data_float32/O088050.npz
+    - ../image_data_float32/O088283.npz
+    - ../image_data_float32/O088516.npz
+    - ../image_data_float32/O092477.npz
+    - ../image_data_float32/O092710.npz
+    - ../image_data_float32/O092943.npz
+    - ../image_data_float32/O093176.npz
+    - ../image_data_float32/O093409.npz
+    - ../image_data_float32/O093642.npz
+    - ../image_data_float32/O093875.npz
+    - ../image_data_float32/O097836.npz
+    - ../image_data_float32/O098069.npz
+    - ../image_data_float32/O098302.npz
+    - ../image_data_float32/O098535.npz
+    - ../image_data_float32/O098768.npz
+    - ../image_data_float32/O099234.npz
+    - ../image_data_float32/O102962.npz
+    - ../image_data_float32/O103195.npz
+    - ../image_data_float32/O103428.npz
+    - ../image_data_float32/O103661.npz
+    - ../image_data_float32/O103894.npz
+    - ../image_data_float32/O104127.npz
+    - ../image_data_float32/O104360.npz
+    - ../image_data_float32/O104593.npz
+    - ../image_data_float32/O108321.npz
+    - ../image_data_float32/O108554.npz
+    - ../image_data_float32/O108787.npz
+    - ../image_data_float32/O109020.npz
+    - ../image_data_float32/O109253.npz
+    - ../image_data_float32/O109486.npz
+    - ../image_data_float32/O109719.npz
+    - ../image_data_float32/O113680.npz
+    - ../image_data_float32/O113913.npz
+    - ../image_data_float32/O114146.npz
+    - ../image_data_float32/O114379.npz
+    - ../image_data_float32/O114612.npz
+    - ../image_data_float32/O114845.npz
+    - ../image_data_float32/O115078.npz
+    - ../image_data_float32/O119039.npz
+    - ../image_data_float32/O119272.npz
+    - ../image_data_float32/O119505.npz
+    - ../image_data_float32/O119738.npz
+    - ../image_data_float32/O119971.npz
+    - ../image_data_float32/O120204.npz
+    - ../image_data_float32/O120437.npz
+
+  norm_stats_save_path: results/pretrain/norm_stats.npz
+
+dataloader_train:
+  batch_size: 256
+  shuffle: true
+  num_workers: 4
+
+dataloader_val:
+  batch_size: 256
+  shuffle: false
+  num_workers: 4
+
+optimizer:
+  lr: 0.001
+
+autoencoder:
+  n_input_channels: 8
+  embedding_size: 8
+
+checkpoint:
+  dirpath: results/pretrain/checkpoints
+  filename: pretrain-{epoch:03d}-{val_loss:.4f}
+  save_top_k: 1
+  monitor: val_loss
+  mode: min
+
+wandb:
+  project: lab2-autoencoder
+  name: pretrain-run
+
+trainer:
+  max_epochs: 20
+  accelerator: auto
+  devices: 1

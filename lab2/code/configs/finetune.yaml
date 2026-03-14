@@ -1,0 +1,50 @@
+seed: 42
+stage: finetune
+use_wandb: true
+
+data:
+  patch_size: 9
+  train_fraction: 0.8
+
+ 
+  finetune_filepaths:
+    - ../image_data_float32/O013257.npz
+    - ../image_data_float32/O013490.npz
+    - ../image_data_float32/O012791.npz
+
+  norm_stats_load_path: results/pretrain/norm_stats.npz
+
+  pretrained_checkpoint_path: results/pretrain/checkpoints/last.ckpt
+
+dataloader_train:
+  batch_size: 256
+  shuffle: true
+  num_workers: 4
+
+dataloader_val:
+  batch_size: 256
+  shuffle: false
+  num_workers: 4
+
+optimizer:
+  lr: 0.0001
+
+autoencoder:
+  n_input_channels: 8
+  embedding_size: 8
+
+checkpoint:
+  dirpath: results/finetune/checkpoints
+  filename: finetune-{epoch:03d}-{val_loss:.4f}
+  save_top_k: 1
+  monitor: val_loss
+  mode: min
+
+wandb:
+  project: lab2-autoencoder
+  name: finetune-run
+
+trainer:
+  max_epochs: 10
+  accelerator: auto
+  devices: 1
