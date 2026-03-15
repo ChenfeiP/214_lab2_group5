@@ -2,7 +2,8 @@
 
 # how to use
 # sbatch job.sh configs/pretrain.yaml
-# sbatch job.sh configs/finetune.yaml
+# sbatch job.sh configs/finetune_cv.yaml
+# sbatch job.sh configs/finetune_final.yaml
 
 #SBATCH --job-name=lab2-autoencoder
 #SBATCH --partition=GPU-shared

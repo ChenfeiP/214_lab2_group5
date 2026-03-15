@@ -100,10 +100,11 @@ class Autoencoder(L.LightningModule):
         return loss
 
     def configure_optimizers(self):
-        # set up the optimizer.
-        optimizer = torch.optim.Adam(self.parameters(), **self.optimizer_config)
+        optimizer = torch.optim.Adam(
+            filter(lambda p: p.requires_grad, self.parameters()),
+            **self.optimizer_config
+        )
         return optimizer
-
     def embed(self, x):
         """
         Embeds the input tensor.
