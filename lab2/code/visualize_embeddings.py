@@ -19,7 +19,8 @@ from sklearn.manifold import TSNE
 
 
 def load_labeled_embeddings(results_dir="results", image_data_dir="../image_data_float32"):
-    """Load embeddings + expert labels for the 3 labeled images."""
+    """Load embeddings + expert labels for the 3 labeled images.
+    Align by (y, x): CSV and npz can have different row counts, so we join on coordinates."""
     labeled_ids = ["O013257", "O013490", "O012791"]
     all_emb, all_labels = [], []
     for i, img_id in enumerate(labeled_ids):
@@ -28,21 +29,26 @@ def load_labeled_embeddings(results_dir="results", image_data_dir="../image_data
             continue
         df = pd.read_csv(csv_path)
         ae_cols = [c for c in df.columns if c.startswith("ae")]
-        emb = df[ae_cols].values
         npz_path = os.path.join(image_data_dir, f"{img_id}.npz")
-        if os.path.exists(npz_path):
-            data = np.load(npz_path)
-            key = list(data.files)[0]
-            arr = data[key]
-            if arr.shape[1] == 11:
-                labels = arr[:, -1]
-                valid = labels != 0
-                emb, labels = emb[valid], labels[valid]
-                all_emb.append(emb)
-                all_labels.append(labels)
-        else:
-            all_emb.append(emb)
-            all_labels.append(np.zeros(len(emb)))
+        if not os.path.exists(npz_path) or df.shape[0] == 0:
+            continue
+        data = np.load(npz_path)
+        key = list(data.files)[0]
+        arr = data[key]
+        if arr.shape[1] != 11:
+            continue
+        # Build label lookup by (y, x); npz columns: 0=y, 1=x, 10=label
+        labels_full = arr[:, -1]
+        ys_npz, xs_npz = arr[:, 0].astype(int), arr[:, 1].astype(int)
+        valid_npz = labels_full != 0
+        label_df = pd.DataFrame({"y": ys_npz[valid_npz], "x": xs_npz[valid_npz], "label": labels_full[valid_npz]})
+        merged = df.merge(label_df, on=["y", "x"], how="inner")
+        if merged.shape[0] == 0:
+            continue
+        emb = merged[ae_cols].values
+        labels = merged["label"].values  # keep +1 / -1 for plot (cloud / no cloud)
+        all_emb.append(emb)
+        all_labels.append(labels)
     if not all_emb:
         return None, None
     return np.vstack(all_emb), np.concatenate(all_labels)
