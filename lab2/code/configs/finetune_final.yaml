@@ -13,6 +13,7 @@ data:
 
   norm_load_path: checkpoints/pretrain/norm_stats.npz
   pretrained_checkpoint_dir: checkpoints/pretrain
+  embedding_output_dir: results
 
 dataloader_train:
   batch_size: 1024

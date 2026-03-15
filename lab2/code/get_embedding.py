@@ -1,7 +1,8 @@
 # EXAMPLE USAGE:
-# python get_embedding.py configs/default.yaml checkpoints/default-epoch=009.ckpt
+# python get_embedding.py configs/finetune_final.yaml checkpoints/finetune/final/final-004.ckpt
 
 import sys
+import os
 import torch
 import pandas as pd
 import numpy as np
@@ -9,7 +10,7 @@ import yaml
 from tqdm import tqdm
 
 from autoencoder import Autoencoder
-from data import make_data
+from data import make_data, load_norm
 
 config_path = sys.argv[1]
 checkpoint_path = sys.argv[2]
@@ -17,10 +18,14 @@ checkpoint_path = sys.argv[2]
 config = yaml.safe_load(open(config_path, "r"))
 
 print("Loading the saved model")
+
 # initialize the autoencoder class
-model = Autoencoder(patch_size=config["data"]["patch_size"], **config["autoencoder"])
+model = Autoencoder(
+    patch_size=config["data"]["patch_size"],
+    **config["autoencoder"],
+)
 # tell PyTorch to load the model onto the CPU if no GPU is available
-map_location = None if torch.cuda.is_available() else 'cpu'
+map_location = None if torch.cuda.is_available() else "cpu"
 # load checkpoint
 checkpoint = torch.load(checkpoint_path, map_location=map_location)
 # load the checkpoint's state_dict into the model
@@ -28,21 +33,32 @@ model.load_state_dict(checkpoint["state_dict"])
 # put the model in evaluation mode
 model.eval()
 
+embedding_size = config["autoencoder"].get("embedding_size", 8)
+norm = None
+norm_path = config["data"].get("norm_load_path")
+path = config["data"].get("embedding_path") or config["data"].get("finetune_path") or config["data"].get("pretrain_path")
+if path is None:
+    raise ValueError("config must specify one of: data.embedding_path, data.finetune_path, data.pretrain_path")
+if norm_path and os.path.exists(norm_path):
+    norm = load_norm(norm_path)
+    print(f"Using normalization from {norm_path}")
+
 print("Making the patch data")
-images_long, patches = make_data(patch_size=config["data"]["patch_size"])
+images_long, patches = make_data(
+    patch_size=config["data"]["patch_size"],
+    path=path,
+    norm=norm,
+)
 
 print("Obtaining embeddings")
 # get the embedding for each patch
 embeddings = []  # what we will save
-images_embedded = []  # for visualization
 
 for i in tqdm(range(len(images_long))):
     ys = images_long[i][:, 0]
     xs = images_long[i][:, 1]
-
     # determine the height and width of the image
-    miny = min(ys)
-    minx = min(xs)
+    miny, minx = min(ys), min(xs)
     height = int(max(ys) - miny + 1)
     width = int(max(xs) - minx + 1)
 
@@ -62,29 +78,25 @@ for i in tqdm(range(len(images_long))):
 
     embeddings.append(emb)
 
-    # represent the embedding as an image, if you want
-    img_embedded = np.zeros((emb.shape[1], height, width))
-    img_embedded[:, (ys - miny).astype(int), (xs - minx).astype(int)] = emb.T
-    images_embedded.append(img_embedded)
-
 print("Saving the embeddings")
 # save the embeddings as csv
+output_dir = config["data"].get("embedding_output_dir", "results")
+os.makedirs(output_dir, exist_ok=True)
 for i in tqdm(range(len(images_long))):
-    embedding_df = pd.DataFrame(embeddings[i], columns=[f"ae{i}" for i in range(8)])
+    embedding_df = pd.DataFrame(
+        embeddings[i],
+        columns=[f"ae{j}" for j in range(embedding_size)],
+    )
+    # add y and x to the dataframe
     embedding_df["y"] = images_long[i][:, 0]
     embedding_df["x"] = images_long[i][:, 1]
-    # move y and x to front
+   
     cols = embedding_df.columns.tolist()
     cols = cols[-2:] + cols[:-2]
     embedding_df = embedding_df[cols]
-    # save to csv
-    embedding_df.to_csv(f"../data/image{i+1}_ae.csv", index=False)
-
-
-# here is some code to take a look at the embeddings.
-# but you should probably just load the csv files in a jupyter notebook
-# and visualize there.
-
-# import matplotlib.pyplot as plt
-# plt.imshow(images_embedded[0][0])
-# plt.show()
+     # save to csv
+    embedding_df.to_csv(
+        os.path.join(output_dir, f"image{i+1}_ae.csv"),
+        index=False,
+    )
+print(f"Saved embedding CSVs to {output_dir}/")
