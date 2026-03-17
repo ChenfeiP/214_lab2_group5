@@ -60,21 +60,9 @@ def flatten_patches(patches):
     return [patch for image_patches in patches for patch in image_patches]
 
 
-def freeze_all_then_unfreeze_selected(model, mode="decoder"):
+def set_all_trainable(model):
     for param in model.parameters():
-        param.requires_grad = False
-
-    if mode == "decoder":
-        for param in model.decoder.parameters():
-            param.requires_grad = True
-    elif mode == "encoder":
-        for param in model.encoder.parameters():
-            param.requires_grad = True
-    elif mode == "all":
-        for param in model.parameters():
-            param.requires_grad = True
-    else:
-        raise ValueError(f"Unknown freeze mode: {mode}")
+        param.requires_grad = True
 
     total_params = sum(p.numel() for p in model.parameters())
     trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
@@ -249,8 +237,7 @@ elif stage == "finetune_cv":
             **config["autoencoder"],
         )
 
-        freeze_mode = config.get("freeze_mode", "decoder")
-        freeze_all_then_unfreeze_selected(model, mode=freeze_mode)
+        set_all_trainable(model)
 
         fold_checkpoint_config = copy.deepcopy(config["checkpoint"])
         fold_checkpoint_config["dirpath"] = os.path.join(base_ckpt_dir, f"fold_{fold_idx+1}")
@@ -340,8 +327,7 @@ elif stage == "finetune_final":
         **config["autoencoder"],
     )
 
-    freeze_mode = config.get("freeze_mode", "decoder")
-    freeze_all_then_unfreeze_selected(model, mode=freeze_mode)
+    set_all_trainable(model)
 
     final_checkpoint_config = copy.deepcopy(config["checkpoint"])
     final_checkpoint_config["dirpath"] = os.path.join(config["checkpoint"]["dirpath"], "final")
