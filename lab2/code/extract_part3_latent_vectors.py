@@ -12,10 +12,18 @@ import torch
 from torch.utils.data import DataLoader, Dataset
 
 from autoencoder import Autoencoder
-from data import make_data, load_norm
+from data import make_data_part3, load_norm
 
 
 class PatchFeatureDataset(Dataset):
+    """
+    Dataset for Part 3 feature extraction.
+    Each item contains:
+      x: patch tensor of shape (C, H, W)
+      y: binary label in {0,1}
+      g: image/group id
+    """
+
     def __init__(self, patches, labels, groups):
         self.patches = patches
         self.labels = labels
@@ -31,26 +39,15 @@ class PatchFeatureDataset(Dataset):
         return x, y, g
 
 
-def load_labels_from_npz(npz_path):
-    npz_data = np.load(npz_path)
-    key = list(npz_data.files)[0]
-    data = npz_data[key]
-
-    if data.shape[1] != 11:
-        raise ValueError(
-            f"{npz_path} does not appear to contain labels. "
-            f"Expected 11 columns, got {data.shape[1]}."
-        )
-
-    labels = data[:, -1].astype(int)
-
-    # 只保留有 expert label 的点
-    keep = labels != 0
-    labels = labels[keep]
-
-    # +1 -> 1 (cloud), -1 -> 0 (non-cloud)
-    labels01 = (labels == 1).astype(np.int64)
-    return labels01
+def resolve_path(p):
+    """
+    Resolve relative paths against the current working directory.
+    This matches your current project convention:
+    you run commands from lab2/code, and YAML paths are written relative to code/.
+    """
+    if isinstance(p, str) and not os.path.isabs(p):
+        return os.path.normpath(os.path.join(os.getcwd(), p))
+    return p
 
 
 def main():
@@ -61,8 +58,8 @@ def main():
         )
 
     config_path = sys.argv[1]
-    checkpoint_path = sys.argv[2]
-    output_path = sys.argv[3]
+    checkpoint_path = resolve_path(sys.argv[2])
+    output_path = resolve_path(sys.argv[3])
 
     if not os.path.exists(config_path):
         raise FileNotFoundError(f"Config file not found: {config_path}")
@@ -74,43 +71,37 @@ def main():
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
-    labeled_paths = config["data"]["finetune_path"]
+    labeled_paths = [resolve_path(p) for p in config["data"]["finetune_path"]]
     patch_size = config["data"]["patch_size"]
-    norm_path = config["data"]["norm_load_path"]
+    norm_path = resolve_path(config["data"]["norm_load_path"])
+
+    print(f"Current working directory: {os.getcwd()}")
+    print(f"Using config: {config_path}")
+    print(f"Using checkpoint: {checkpoint_path}")
+    print(f"Using norm stats: {norm_path}")
+    print(f"Using labeled paths:")
+    for p in labeled_paths:
+        print(f"  {p}")
 
     norm = load_norm(norm_path)
     print(f"Loaded norm stats from: {norm_path}")
 
-    # make_data 会删掉最后一列 label，但 patch 顺序与原始行顺序一致
-    _, patches_nested = make_data(
+    # Build Part 3 labeled patch dataset directly from data.py
+    _, patches_nested, labels_nested, groups_nested, image_names = make_data_part3(
         patch_size=patch_size,
         path=labeled_paths,
         norm=norm,
         return_norm=False,
     )
 
-    all_patches = []
-    all_labels = []
-    all_groups = []
-    image_names = []
+    all_patches = np.concatenate(patches_nested, axis=0)
+    all_labels = np.concatenate(labels_nested, axis=0)
+    all_groups = np.concatenate(groups_nested, axis=0)
 
-    for group_id, (img_path, img_patches) in enumerate(zip(labeled_paths, patches_nested)):
-        img_name = os.path.basename(img_path)
-        image_names.append(img_name)
-
-        img_labels = load_labels_from_npz(img_path)
-
-        if len(img_patches) != len(img_labels):
-            raise ValueError(
-                f"Mismatch for {img_name}: "
-                f"{len(img_patches)} patches vs {len(img_labels)} labels."
-            )
-
-        all_patches.extend(img_patches)
-        all_labels.extend(img_labels.tolist())
-        all_groups.extend([group_id] * len(img_patches))
-
-        print(f"{img_name}: {len(img_patches)} labeled patches")
+    print(f"Total labeled patches: {len(all_patches)}")
+    print(f"Label shape: {all_labels.shape}")
+    print(f"Group shape: {all_groups.shape}")
+    print(f"Image names: {image_names}")
 
     dataset = PatchFeatureDataset(all_patches, all_labels, all_groups)
     loader = DataLoader(
@@ -138,7 +129,10 @@ def main():
         for batch_x, batch_y, batch_g in loader:
             batch_x = batch_x.to(device)
 
+            # Extract latent embedding from encoder
             z = model.embed(batch_x)
+
+            # Keep as 2D array for sklearn
             z = z.view(z.size(0), -1)
 
             X_list.append(z.cpu().numpy())
@@ -148,7 +142,6 @@ def main():
     X = np.concatenate(X_list, axis=0)
     y = np.concatenate(y_list, axis=0)
     groups = np.concatenate(g_list, axis=0)
-    image_names = np.array(image_names, dtype=object)
 
     out_dir = os.path.dirname(output_path)
     if out_dir != "":

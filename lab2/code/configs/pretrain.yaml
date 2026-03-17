@@ -173,12 +173,12 @@ data:
 
 dataloader_train:
   batch_size: 1024
-  num_workers: 8
+  num_workers: 4
   shuffle: True
 
 dataloader_val:
   batch_size: 1024
-  num_workers: 8
+  num_workers: 4
   shuffle: False
 
 optimizer:
