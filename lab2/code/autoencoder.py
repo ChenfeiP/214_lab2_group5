@@ -21,20 +21,23 @@ class Autoencoder(L.LightningModule):
         # more/fewer nodes, or different activation functions would be better?
 
         input_size = int(n_input_channels * (patch_size**2))
+
+        # Encoder: MLP + LeakyReLU
         self.encoder = torch.nn.Sequential(
             torch.nn.Flatten(start_dim=1, end_dim=-1),
             torch.nn.Linear(input_size, 128),
-            torch.nn.ReLU(),
+            torch.nn.LeakyReLU(negative_slope=0.1),
             torch.nn.Linear(128, 64),
-            torch.nn.ReLU(),
+            torch.nn.LeakyReLU(negative_slope=0.1),
             torch.nn.Linear(64, embedding_size),
         )
 
+        # Decoder: MLP + LeakyReLU
         self.decoder = torch.nn.Sequential(
             torch.nn.Linear(embedding_size, 64),
-            torch.nn.ReLU(),
+            torch.nn.LeakyReLU(negative_slope=0.1),
             torch.nn.Linear(64, 128),
-            torch.nn.ReLU(),
+            torch.nn.LeakyReLU(negative_slope=0.1),
             torch.nn.Linear(128, input_size),
             torch.nn.Unflatten(1, (n_input_channels, patch_size, patch_size)),
         )
@@ -100,11 +103,10 @@ class Autoencoder(L.LightningModule):
         return loss
 
     def configure_optimizers(self):
-        optimizer = torch.optim.Adam(
-            filter(lambda p: p.requires_grad, self.parameters()),
-            **self.optimizer_config
-        )
+        # set up the optimizer.
+        optimizer = torch.optim.Adam(self.parameters(), **self.optimizer_config)
         return optimizer
+
     def embed(self, x):
         """
         Embeds the input tensor.
