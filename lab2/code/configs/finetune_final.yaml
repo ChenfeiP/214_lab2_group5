@@ -1,6 +1,5 @@
 seed: 42
 stage: finetune_final
-freeze_mode: decoder
 use_wandb: false
 
 data:
