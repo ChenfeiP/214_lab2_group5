@@ -1,0 +1,26 @@
+  0%|          | 0/3 [00:00<?, ?it/s]100%|██████████| 3/3 [00:00<00:00, 27.75it/s]100%|██████████| 3/3 [00:00<00:00, 27.71it/s]
+  0%|          | 0/3 [00:00<?, ?it/s]100%|██████████| 3/3 [00:00<00:00, 121.32it/s]
+  0%|          | 0/3 [00:00<?, ?it/s] 33%|███▎      | 1/3 [00:00<00:00,  6.27it/s] 67%|██████▋   | 2/3 [00:00<00:00,  6.21it/s]100%|██████████| 3/3 [00:00<00:00,  6.19it/s]100%|██████████| 3/3 [00:00<00:00,  6.20it/s]
+GPU available: True (cuda), used: True
+TPU available: False, using: 0 TPU cores
+/jet/home/cpeng3/.conda/envs/env_214/lib/python3.10/site-packages/lightning/pytorch/trainer/connectors/logger_connector/logger_connector.py:76: Starting from v1.9.0, `tensorboardX` has been removed as a dependency of the `lightning.pytorch` package, due to potential conflicts with other packages in the ML ecosystem. For this reason, `logger=True` will use `CSVLogger` as the default logger, unless the `tensorboard` or `tensorboardX` packages are found. Please `pip install lightning[extra]` or one of them to enable TensorBoard support by default
+💡 Tip: For seamless cloud logging and experiment tracking, try installing [litlogger](https://pypi.org/project/litlogger/) to enable LitLogger, which logs metrics and artifacts automatically to the Lightning Experiments platform.
+/jet/home/cpeng3/.conda/envs/env_214/lib/python3.10/site-packages/lightning/pytorch/trainer/configuration_validator.py:70: You defined a `validation_step` but have no `val_dataloader`. Skipping val loop.
+/jet/home/cpeng3/.conda/envs/env_214/lib/python3.10/site-packages/lightning/pytorch/callbacks/model_checkpoint.py:881: Checkpoint directory /jet/home/cpeng3/214_lab2_group5/lab2/code/checkpoints/finetune/final exists and is not empty.
+LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
+
+  | Name    | Type       | Params | Mode  | FLOPs
+-------------------------------------------------------
+0 | encoder | Sequential | 91.8 K | train | 0    
+1 | decoder | Sequential | 92.5 K | train | 0    
+-------------------------------------------------------
+92.5 K    Trainable params
+91.8 K    Non-trainable params
+184 K     Total params
+0.737     Total estimated model params size (MB)
+14        Modules in train mode
+0         Modules in eval mode
+0         Total Flops
+SLURM auto-requeueing enabled. Setting signal handlers.
+/jet/home/cpeng3/.conda/envs/env_214/lib/python3.10/site-packages/lightning/pytorch/utilities/_pytree.py:21: `isinstance(treespec, LeafSpec)` is deprecated, use `isinstance(treespec, TreeSpec) and treespec.is_leaf()` instead.
+`Trainer.fit` stopped: `max_epochs=5` reached.
