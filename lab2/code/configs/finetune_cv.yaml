@@ -6,12 +6,12 @@ data:
   patch_size: 9
 
   finetune_path:
-    - ../image_data_float32/O013257.npz
-    - ../image_data_float32/O013490.npz
-    - ../image_data_float32/O012791.npz
+    - ../data/O013257.npz
+    - ../data/O013490.npz
+    - ../data/O012791.npz
 
-  norm_load_path: checkpoints/pretrain/norm_stats.npz
-  pretrained_checkpoint_dir: checkpoints/pretrain
+  norm_load_path: results/checkpoints/pretrain/norm_stats.npz
+  pretrained_checkpoint_dir: results/checkpoints/pretrain
 
 dataloader_train:
   batch_size: 1024
@@ -35,7 +35,7 @@ checkpoint:
   monitor: val_loss
   mode: min
   filename: finetune-{epoch:03d}-{val_loss:.4f}
-  dirpath: checkpoints/finetune
+  dirpath: results/checkpoints/finetune
 
 wandb:
   project: lab2-autoencoder

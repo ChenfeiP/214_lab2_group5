@@ -1,6 +1,5 @@
 #!/bin/bash
 
-# how to use
 # sbatch job.sh configs/pretrain.yaml
 # sbatch job.sh configs/finetune_cv.yaml
 # sbatch job.sh configs/finetune_final.yaml
@@ -20,7 +19,6 @@ if [ -z "$1" ]; then
     exit 1
 fi
 
-# 初始化 conda
 source ~/miniconda3/etc/profile.d/conda.sh
 conda activate env_214
 

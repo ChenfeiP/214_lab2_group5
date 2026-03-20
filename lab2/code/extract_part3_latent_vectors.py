@@ -1,7 +1,7 @@
-# EXAMPLE USAGE:
+
 # python extract_part3_latent_vectors.py \
 #   configs/finetune_final.yaml \
-#   checkpoints/finetune/final/final-epoch=004.ckpt \
+#   results/checkpoints/finetune/final/final-epoch=004.ckpt \
 #   results/part3_latent_vectors.npz
 
 import os
@@ -16,14 +16,6 @@ from data import make_data_part3, load_norm
 
 
 class PatchFeatureDataset(Dataset):
-    """
-    Dataset for Part 3 feature extraction.
-    Each item contains:
-      x: patch tensor of shape (C, H, W)
-      y: binary label in {0,1}
-      g: image/group id
-    """
-
     def __init__(self, patches, labels, groups):
         self.patches = patches
         self.labels = labels
@@ -40,11 +32,6 @@ class PatchFeatureDataset(Dataset):
 
 
 def resolve_path(p):
-    """
-    Resolve relative paths against the current working directory.
-    This matches your current project convention:
-    you run commands from lab2/code, and YAML paths are written relative to code/.
-    """
     if isinstance(p, str) and not os.path.isabs(p):
         return os.path.normpath(os.path.join(os.getcwd(), p))
     return p
@@ -86,7 +73,7 @@ def main():
     norm = load_norm(norm_path)
     print(f"Loaded norm stats from: {norm_path}")
 
-    # Build Part 3 labeled patch dataset directly from data.py
+
     _, patches_nested, labels_nested, groups_nested, image_names = make_data_part3(
         patch_size=patch_size,
         path=labeled_paths,
@@ -128,11 +115,9 @@ def main():
     with torch.no_grad():
         for batch_x, batch_y, batch_g in loader:
             batch_x = batch_x.to(device)
-
-            # Extract latent embedding from encoder
+           
             z = model.embed(batch_x)
 
-            # Keep as 2D array for sklearn
             z = z.view(z.size(0), -1)
 
             X_list.append(z.cpu().numpy())

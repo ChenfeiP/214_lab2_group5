@@ -1,4 +1,4 @@
-# EXAMPLE USAGE:
+
 # python run_autoencoder.py configs/pretrain.yaml
 # python run_autoencoder.py configs/finetune_cv.yaml
 # python run_autoencoder.py configs/finetune_final.yaml

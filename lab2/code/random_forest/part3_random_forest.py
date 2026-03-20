@@ -1,5 +1,3 @@
-"""Train and evaluate Random Forest models for Part 3."""
-
 import argparse
 import json
 import os
@@ -32,9 +30,6 @@ from part3_data_utils import (
     assemble_unlabeled_feature_sets,
 )
 
-# -----------------------------
-# Publication-style plotting
-# -----------------------------
 sns.set_theme(context="paper", style="ticks")
 
 mpl.rcParams.update({
@@ -658,72 +653,6 @@ def save_unlabeled_predictions(
     finalize_figure(os.path.join(unlabeled_dir, "unlabeled_cloud_fraction.png"))
 
 
-def write_model_notes(
-    outdir: str,
-    best_model_name: str,
-    best_feature_set: str,
-    best_feature_cols: List[str],
-):
-    notes = f"""# Part 3 Random Forest Notes
-
-## Models considered
-We evaluated three Random Forest classifiers:
-- rf_small
-- rf_medium
-- rf_regularized
-
-Each model was tested on three feature sets:
-- handcrafted
-- ae_only
-- combined
-
-So in total, 9 candidate classifiers were compared.
-
-## Why grouped cross-validation?
-Pixels from the same image are highly dependent spatially, so ordinary random CV would leak image-specific structure into both training and test sets.
-To reduce this leakage, we used GroupKFold with image ID as the grouping variable, so each fold holds out one full labeled image.
-
-## Assumptions / modeling notes
-Random Forest is a nonparametric tree-ensemble classifier. It does **not** require:
-- linear decision boundaries,
-- Gaussian predictors,
-- constant variance,
-- or low collinearity.
-
-However, it still relies on:
-- training and test data being reasonably comparable,
-- labels being informative,
-- and enough data variation to generalize.
-
-We assessed reasonableness of these assumptions indirectly through:
-- grouped cross-validation,
-- ROC/AUC and F1 comparison,
-- seed stability analysis,
-- perturbation analysis,
-- and sanity-check predictions on unlabeled images.
-
-## Best model
-- model: {best_model_name}
-- feature set: {best_feature_set}
-- number of features: {len(best_feature_cols)}
-
-## Feature importance
-We report:
-- MDI feature importance
-- permutation importance
-
-## Post-hoc error analysis
-We also saved:
-- per-fold out-of-fold predictions,
-- misclassified rows,
-- image-level error rates,
-- confidence distributions,
-- and feature distributions for correct vs misclassified predictions.
-"""
-    with open(os.path.join(outdir, "model_notes.md"), "w") as f:
-        f.write(notes)
-
-
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--ae-features", required=True, help="Path to labeled AE latent vectors .npz")
@@ -884,22 +813,7 @@ def main():
         feature_cols=best_feature_cols,
         outdir=os.path.join(args.outdir, "error_analysis"),
     )
-    save_stability_analysis(
-        best_model=best_model,
-        X=X_best,
-        y=y,
-        groups=groups,
-        outdir=os.path.join(args.outdir, "stability_analysis"),
-        base_random_state=args.random_state,
-    )
-    save_perturbation_analysis(
-        best_model=best_model,
-        X=X_best,
-        y=y,
-        feature_names=best_feature_cols,
-        outdir=os.path.join(args.outdir, "perturbation_analysis"),
-        random_state=args.random_state,
-    )
+
 
     print("\n[INFO] Fitting best model on all labeled data...")
     best_model.fit(X_best, y)
@@ -921,12 +835,6 @@ def main():
         json.dump(metadata, f, indent=2)
     print(f"[INFO] Saved metadata to {metadata_path}")
 
-    write_model_notes(
-        outdir=args.outdir,
-        best_model_name=best_model_name,
-        best_feature_set=best_feature_set,
-        best_feature_cols=best_feature_cols,
-    )
 
     if args.unlabeled_paths:
         save_unlabeled_predictions(

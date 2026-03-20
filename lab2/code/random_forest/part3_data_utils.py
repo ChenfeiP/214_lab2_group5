@@ -31,11 +31,7 @@ def load_labeled_dataframe(
     labeled_paths: Sequence[str],
     handcrafted_features: Optional[Sequence[str]] = None,
 ) -> pd.DataFrame:
-    """Load labeled images into one pixel-level dataframe.
 
-    Keeps only rows with expert labels +/-1, maps to y_binary in {0,1},
-    and adds image_name + group_id for grouped CV.
-    """
     if handcrafted_features is None:
         handcrafted_features = HANDCRAFTED_DEFAULT
 
@@ -84,7 +80,7 @@ def assemble_feature_sets(
     ae_feature_npz: str,
     handcrafted_features: Optional[Sequence[str]] = None,
 ) -> Tuple[pd.DataFrame, Dict[str, List[str]]]:
-    """Join handcrafted features and AE features by row order within each image."""
+    
     hand_df = load_labeled_dataframe(labeled_paths, handcrafted_features=handcrafted_features)
     ae_df = load_ae_feature_dataframe(ae_feature_npz)
 
@@ -121,7 +117,7 @@ def load_unlabeled_dataframe(
     unlabeled_paths: Sequence[str],
     handcrafted_features: Optional[Sequence[str]] = None,
 ) -> pd.DataFrame:
-    """Load unlabeled images for sanity-check prediction."""
+   
     if handcrafted_features is None:
         handcrafted_features = HANDCRAFTED_DEFAULT
 
@@ -149,15 +145,7 @@ def load_unlabeled_dataframe(
 
 
 def load_unlabeled_ae_feature_dataframe(ae_feature_npz: str) -> pd.DataFrame:
-    """Load AE features extracted from unlabeled images.
-
-    Expected keys:
-      - X
-      - groups
-      - image_names
-    Optional keys:
-      - y
-    """
+    
     data = np.load(ae_feature_npz, allow_pickle=True)
     X = data["X"]
     groups = data["groups"].astype(int)
@@ -178,7 +166,7 @@ def assemble_unlabeled_feature_sets(
     handcrafted_features: Optional[Sequence[str]] = None,
     ae_feature_npz: Optional[str] = None,
 ) -> Tuple[pd.DataFrame, Dict[str, List[str]]]:
-    """Assemble unlabeled feature table for sanity-check prediction."""
+   
     hand_df = load_unlabeled_dataframe(
         unlabeled_paths,
         handcrafted_features=handcrafted_features,

@@ -108,25 +108,7 @@ def make_data(patch_size=9, path="../image_data_float32/*.npz", norm=None, retur
         return images_long, patches, norm
     return images_long, patches
 
-def make_data_part3(patch_size=9, path="../image_data_float32/*.npz", norm=None, return_norm=False):
-    """
-    Build labeled patch data for Part 3 classification.
-
-    Returns
-    -------
-    images_long : list[np.ndarray]
-        Original per-image tables INCLUDING labels (11 columns).
-    patches : list[np.ndarray]
-        patches[i] has shape (n_labeled_points_i, n_channels, patch_size, patch_size)
-    labels : list[np.ndarray]
-        labels[i] has shape (n_labeled_points_i,), values in {0, 1}
-    groups : list[np.ndarray]
-        groups[i] has shape (n_labeled_points_i,), filled with image index i
-    image_names : np.ndarray
-        Array of image filenames
-    norm : dict, optional
-        Returned only if return_norm=True
-    """
+def make_data_part3(patch_size=9, path="../data/*.npz", norm=None, return_norm=False):
     if isinstance(path, str):
         path = sorted(glob.glob(path))
     elif isinstance(path, list):
@@ -149,7 +131,6 @@ def make_data_part3(patch_size=9, path="../image_data_float32/*.npz", norm=None,
 
         images_long.append(data)
 
-    # global coordinate range, same logic as make_data
     all_y = np.concatenate([img[:, 0] for img in images_long]).astype(int)
     all_x = np.concatenate([img[:, 1] for img in images_long]).astype(int)
     global_miny, global_maxy = all_y.min(), all_y.max()
@@ -157,7 +138,7 @@ def make_data_part3(patch_size=9, path="../image_data_float32/*.npz", norm=None,
     height = int(global_maxy - global_miny + 1)
     width = int(global_maxx - global_minx + 1)
 
-    nchannels = images_long[0].shape[1] - 3  # y, x, 8 features, label
+    nchannels = images_long[0].shape[1] - 3  
     images = []
     coords_rel = []
     labels_valid_all = []
