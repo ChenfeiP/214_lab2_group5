@@ -7,6 +7,7 @@ This repository contains code and workflows for **Lab 2**: analysis and modeling
 The main modeling threads in `lab2/code` are:
 
 - **Transfer learning / autoencoder pipeline** — train normalization-aware patch autoencoders, export per-pixel latent vectors for three labeled images, and run lightweight probes and visualizations.
+- **Random forest (Part 3)** — extract latent features from the modified transfer-learning model and train a supervised random forest classifier on the three labeled scenes.
 - **Logistic regression (Part 3)** — leave-one-image-out (LOIO) logistic models using raw bands/features only, latent features only, and their combination; compare a **baseline** vs **modified** transfer-learning setup.
 
 Results are written under `lab2/code/results/` (checkpoints, CSVs, figures, and summary tables) so experiments can be traced and compared without ad hoc paths.
@@ -141,6 +142,32 @@ python transfer_learning/compare_transfer_results.py
 
 Aggregated metrics are written to **`results/transfer_learning/comparisons/transfer_learning_comparison_summary.csv`**.
 
+
+---
+
+## Reproducing the random forest experiments
+
+Random forest uses **labeled** pixels from the three expert-annotated scenes together with latent features extracted from the **modified** transfer-learning checkpoint. Outputs go to **`results/part3_random_forest/`**.
+
+Run from **`lab2/code`**:
+
+```bash
+cd lab2/code
+
+python extract_part3_latent_vectors.py \
+  transfer_learning/configs/finetune_final.yaml \
+  results/transfer_learning/checkpoints_modified/finetune/final/final-epoch=004-v2.ckpt \
+  results/part3_latent_vectors.npz
+
+python random_forest/part3_random_forest.py \
+  --ae-features results/part3_latent_vectors.npz \
+  --labeled-paths \
+    ../data/O012791.npz \
+    ../data/O013257.npz \
+    ../data/O013490.npz \
+  --outdir results/part3_random_forest \
+  --random-state 42
+```
 
 ---
 
