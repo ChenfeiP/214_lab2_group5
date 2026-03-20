@@ -4,9 +4,10 @@ Sixian Liu worked on:
 - Part A of transfer learning, including data preprocessing, pretraining, cross-validated fine-tuning, and final fine-tuning
 - Part A of the modeling section, specifically the Random Forest model
 
-____ worked on:
--
--
+Victoria Karai worked on:
+- Introduction of report
+- Exploratory data analysis
+- Part D of the modeling section, specifically the LightGBM model 
 
 ____ worked on:
 -
