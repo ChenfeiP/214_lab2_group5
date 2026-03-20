@@ -14,7 +14,8 @@ def load_norm(path):
 def save_norm(norm, path):
     np.savez(path, means=norm["means"], stds=norm["stds"])
 
-def make_data(patch_size=9, path="../image_data_float32/*.npz", norm=None, return_norm=False):
+def make_data(patch_size=9, path="../image_data_float32/*.npz", norm=None, 
+              return_norm=False, remove_labels=True):
     
     # 1. load data
     if isinstance(path, str):
@@ -31,9 +32,13 @@ def make_data(patch_size=9, path="../image_data_float32/*.npz", norm=None, retur
         npz_data = np.load(fp)
         key = list(npz_data.files)[0]
         data = npz_data[key]
-        if data.shape[1] == 11:
+        if remove_labels and data.shape[1] == 11:
             data = data[:, :-1]  # remove labels
         images_long.append(data)   # it is a list of each image, each row is a pixel
+    
+    # If keeping the labels, return the patches as an empty list.
+    if not remove_labels:
+        return images_long, []
 
     # 2. calculate y and x range
     all_y = np.concatenate([img[:, 0] for img in images_long]).astype(int)  #  it is a list of all y 
