@@ -90,3 +90,7 @@ RF_JOBID=$(
     sbatch --dependency=afterok:"$FINETUNE_FINAL_JOBID" random_forest/job_rf.sh | awk '{print $4}'
 )
 echo "[INFO] random forest job id: $RF_JOBID"
+
+echo "[INFO] Deactivating environment: $ENV_NAME"
+conda deactivate "$ENV_NAME"
+
