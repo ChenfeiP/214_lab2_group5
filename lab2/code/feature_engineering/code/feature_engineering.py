@@ -150,7 +150,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Rank original MISR features for cloud vs non-cloud separation."
     )
-    parser.add_argument("--image_dir", type=Path, default=Path("../../image_data_float32"))
+    parser.add_argument("--image_dir", type=Path, default=Path("../../../image_data_float32"))
     parser.add_argument(
         "--output_dir", type=Path, default=Path("../results/feature_engineering_part21")
     )

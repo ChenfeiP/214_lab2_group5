@@ -5,7 +5,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CODE_DIR="$SCRIPT_DIR"
 LAB2_DIR="$(cd "$CODE_DIR/.." && pwd)"
-FEATURE_ENG_DIR="$LAB2_DIR/feature_engineering"
+FEATURE_ENG_DIR="$CODE_DIR/feature_engineering"
 FEATURE_ENG_CODE_DIR="$FEATURE_ENG_DIR/code"
 FEATURE_ENG_RESULTS_DIR="$FEATURE_ENG_DIR/results"
 ENV_YAML="$CODE_DIR/environment.yaml"
@@ -44,7 +44,7 @@ python -V
 
 mkdir -p "$RESULTS_DIR"
 mkdir -p "$RESULTS_DIR/part3_random_forest"
-mkdir -p "$RESULTS_DIR/part3_lda"
+mkdir -p "$CODE_DIR/LDA_model/results/part3_lda"
 mkdir -p "$RESULTS_DIR/transfer_learning/comparisons"
 mkdir -p "$RESULTS_DIR/transfer_learning/results_baseline"
 mkdir -p "$RESULTS_DIR/transfer_learning/results_modified"
@@ -137,7 +137,7 @@ echo "[INFO] random forest job id: $RF_JOBID"
 # ========= Model B : LDA =========
 echo "[INFO] Submitting LDA job..."
 LDA_JOBID=$(
-    sbatch --dependency=afterok:"$FINETUNE_FINAL_MOD_JOBID" "$CODE_DIR/job_lda.sh" | awk '{print $4}'
+    sbatch --dependency=afterok:"$FINETUNE_FINAL_MOD_JOBID" "$CODE_DIR/LDA_model/job_lda.sh" | awk '{print $4}'
 )
 echo "[INFO] LDA job id: $LDA_JOBID"
 

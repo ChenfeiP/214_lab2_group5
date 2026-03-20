@@ -384,7 +384,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Generate feature-engineering plots from labeled MISR data."
     )
-    parser.add_argument("--image_dir", type=Path, default=Path("../../image_data_float32"))
+    parser.add_argument("--image_dir", type=Path, default=Path("../../../image_data_float32"))
     parser.add_argument(
         "--output_dir",
         type=Path,

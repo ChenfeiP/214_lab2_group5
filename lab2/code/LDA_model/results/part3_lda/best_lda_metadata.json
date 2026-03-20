@@ -1,0 +1,28 @@
+{
+  "best_model_name": "lda_shrinkage",
+  "best_feature_set": "ae_only",
+  "best_feature_cols": [
+    "ae_0",
+    "ae_1",
+    "ae_2",
+    "ae_3",
+    "ae_4",
+    "ae_5",
+    "ae_6",
+    "ae_7"
+  ],
+  "labeled_paths": [
+    "../image_data_float32/O012791.npz",
+    "../image_data_float32/O013257.npz",
+    "../image_data_float32/O013490.npz"
+  ],
+  "summary_top_row": {
+    "model_name": "lda_shrinkage",
+    "feature_set": "ae_only",
+    "mean_roc_auc": 0.9100272034363908,
+    "mean_f1": 0.6677550164574974,
+    "mean_accuracy": 0.7878466055213535,
+    "mean_precision": 0.824480207222612,
+    "mean_recall": 0.5624334316593478
+  }
+}

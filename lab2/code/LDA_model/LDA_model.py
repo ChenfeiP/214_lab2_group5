@@ -3,6 +3,7 @@
 import argparse
 import json
 import os
+import sys
 from dataclasses import asdict, dataclass
 from typing import Dict, List, Tuple
 
@@ -24,6 +25,11 @@ from sklearn.metrics import (
     roc_curve,
 )
 from sklearn.model_selection import GroupKFold
+
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+CODE_DIR = os.path.dirname(SCRIPT_DIR)
+if CODE_DIR not in sys.path:
+    sys.path.insert(0, CODE_DIR)
 
 from random_forest.part3_data_utils import (
     HANDCRAFTED_DEFAULT,
@@ -333,7 +339,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--ae-features", required=True, help="Path to labeled AE latent vectors .npz")
     parser.add_argument("--labeled-paths", nargs="+", required=True, help="Three labeled .npz image paths")
-    parser.add_argument("--outdir", default="results/part3_lda")
+    parser.add_argument("--outdir", default=os.path.join(SCRIPT_DIR, "results", "part3_lda"))
     parser.add_argument("--handcrafted-features", nargs="*", default=HANDCRAFTED_DEFAULT)
     parser.add_argument("--unlabeled-paths", nargs="*", default=None, help="Optional unlabeled image paths")
     parser.add_argument(
