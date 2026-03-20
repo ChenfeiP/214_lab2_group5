@@ -32,8 +32,8 @@ echo "=============================="
 
 echo "Step 1: extract AE latent vectors for labeled data"
 srun python extract_part3_latent_vectors.py \
-  configs/finetune_final.yaml \
-  results/transfer_learning/modified/finetune/final/final-epoch=004-v2.ckpt \
+  transfer_learning/configs/finetune_final.yaml \
+  results/transfer_learning/checkpoints_modified/finetune/final/final-epoch=004-v2.ckpt \
   results/part3_latent_vectors.npz
 
 echo "Step 2: train/evaluate random forest"

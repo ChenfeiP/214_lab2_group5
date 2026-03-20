@@ -1,8 +1,4 @@
 
-# python extract_part3_latent_vectors.py \
-#   configs/finetune_final.yaml \
-#   results/checkpoints/finetune/final/final-epoch=004.ckpt \
-#   results/part3_latent_vectors.npz
 
 import os
 import sys
