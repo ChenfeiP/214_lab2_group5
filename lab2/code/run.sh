@@ -117,7 +117,7 @@ PY
 
 
 # ========= EDA =========
-echo "[INFO] Running EDA ..."
+echo "[INFO] Running EDA..."
 python eda.py
 
 
@@ -207,3 +207,6 @@ echo "        finetune_cv     : $FINETUNE_CV_JOBID"
 echo "        finetune_final  : $FINETUNE_FINAL_JOBID"
 echo "        extract_latent  : $EXTRACT_JOBID"
 echo "        random_forest   : $RF_JOBID"
+
+echo "[INFO] Deactivating environment: $ENV_NAME"
+conda deactivate "$ENV_NAME"
