@@ -1,0 +1,5 @@
+metric,value
+accuracy_mean,0.6867569915114908
+accuracy_std,0.08370921521203603
+roc_auc_mean,0.7729983714491111
+roc_auc_std,0.08464502144349126

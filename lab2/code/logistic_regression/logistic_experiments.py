@@ -3,23 +3,26 @@
 Image-level logistic regression experiments to evaluate transfer learning embeddings.
 
 This script:
-1. Loads the 3 labeled MISR images from ../image_data_float32/*.npz
-2. Merges raw features with autoencoder embeddings (image*_ae.csv)
+1. Loads the 3 labeled MISR images from lab2/data or lab2/image_data_float32 (*.npz).
+2. Merges raw features with autoencoder embeddings (image*_ae.csv under TL results).
 3. Runs Leave-One-Image-Out CV logistic regression with 3 feature sets:
    - raw only
    - latent only (autoencoder embeddings)
    - raw + latent
-4. Saves per-fold results, per-pixel predictions, coefficient tables, top-|coef|
-   bar plots (standardized features), and spatial misclassification maps under OUT_DIR.
-
-IMPORTANT: Files/paths you must have or adjust:
-- FEATURE_NAMES: names and order of raw features in the npz (after y,x)
+4. Saves outputs under results/part3_logistic_regression/results_{baseline,modified}/.
 
 Usage (from lab2/code/):
-    python logistic_experiments.py
+    python logistic_regression/logistic_experiments.py --variant modified
+    python logistic_regression/logistic_experiments.py --variant baseline
 """
 
+import argparse
 import os
+from typing import Dict, List, Optional, Set
+
+# Repo "code" root (lab2/code/), stable regardless of cwd
+_CODE_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
 import numpy as np
 import pandas as pd
 import matplotlib
@@ -36,20 +39,75 @@ from sklearn.metrics import (
     confusion_matrix,
 )
 
-
-RAW_NPZ_PATHS = {
-    "image1": "../image_data_float32/O013257.npz",
-    "image2": "../image_data_float32/O013490.npz",
-    "image3": "../image_data_float32/O012791.npz",
-}
-
-EMBEDDING_DIR = "transfer_learning_results/images"
-
 FEATURE_NAMES = ["NDAI", "SD", "CORR", "DF", "CF", "BF", "AF", "AN"]
 
-# Output directory for all logistic experiment results.
-OUT_DIR = "logistic_experiments_results"
-os.makedirs(OUT_DIR, exist_ok=True)
+# --- paths (cwd-independent; always relative to lab2/code/) ---
+TL_RESULTS_BASELINE = os.path.join(
+    _CODE_ROOT, "results", "transfer_learning", "results_baseline"
+)
+TL_RESULTS_MODIFIED = os.path.join(
+    _CODE_ROOT, "results", "transfer_learning", "results_modified"
+)
+LR_RESULTS_BASELINE = os.path.join(
+    _CODE_ROOT, "results", "part3_logistic_regression", "results_baseline"
+)
+LR_RESULTS_MODIFIED = os.path.join(
+    _CODE_ROOT, "results", "part3_logistic_regression", "results_modified"
+)
+
+_LABELED_IMAGE_IDS = ("O013257", "O013490", "O012791")
+
+
+def _lab_data_dir() -> str:
+    primary = os.path.normpath(os.path.join(_CODE_ROOT, "..", "data"))
+    alt = os.path.normpath(os.path.join(_CODE_ROOT, "..", "image_data_float32"))
+
+    def has_npz(d: str) -> bool:
+        try:
+            return any(name.endswith(".npz") for name in os.listdir(d))
+        except OSError:
+            return False
+
+    if os.path.isdir(primary) and has_npz(primary):
+        return primary
+    if os.path.isdir(alt):
+        return alt
+    return primary
+
+
+def _labeled_npz_paths_by_key() -> Dict[str, str]:
+    base = _lab_data_dir()
+    return {
+        f"image{i}": os.path.join(base, f"{oid}.npz")
+        for i, oid in enumerate(_LABELED_IMAGE_IDS, start=1)
+    }
+
+
+def _embedding_csv_candidates(
+    results_dir: str, index_1based: int, variant: str
+) -> List[str]:
+    stem = f"image{index_1based}_ae"
+    names: List[str] = [f"{stem}.csv"]
+    if variant == "baseline":
+        names.insert(0, f"{stem}_baseline.csv")
+    elif variant == "modified":
+        names.insert(0, f"{stem}_modified.csv")
+    seen: Set[str] = set()
+    ordered: List[str] = []
+    for n in names:
+        if n not in seen:
+            seen.add(n)
+            ordered.append(n)
+    return [os.path.join(results_dir, n) for n in ordered]
+
+
+def _first_existing_embedding_csv(
+    results_dir: str, index_1based: int, variant: str
+) -> Optional[str]:
+    for p in _embedding_csv_candidates(results_dir, index_1based, variant):
+        if os.path.exists(p):
+            return p
+    return None
 
 
 def load_labeled_npz(path: str, feature_names):
@@ -309,17 +367,48 @@ def run_loio_logistic(df: pd.DataFrame, feature_cols, threshold: float = 0.5):
 
 
 def main():
+    parser = argparse.ArgumentParser(
+        description="LOIO logistic regression on raw / latent / both feature sets."
+    )
+    parser.add_argument(
+        "--variant",
+        choices=("baseline", "modified"),
+        default="modified",
+        help="Which transfer-learning embedding outputs and LR result folder to use.",
+    )
+    args = parser.parse_args()
+
+    if args.variant == "baseline":
+        embedding_dir = TL_RESULTS_BASELINE
+        out_dir = LR_RESULTS_BASELINE
+        variant_key = "baseline"
+    else:
+        embedding_dir = TL_RESULTS_MODIFIED
+        out_dir = LR_RESULTS_MODIFIED
+        variant_key = "modified"
+
+    os.makedirs(out_dir, exist_ok=True)
+
+    raw_npz_paths = _labeled_npz_paths_by_key()
+
     # ----- Step 1: load 3 labeled images -----
     raw_dfs = {}
-    for image_id, path in RAW_NPZ_PATHS.items():
+    for image_id, path in raw_npz_paths.items():
         raw_dfs[image_id] = load_labeled_npz(path, FEATURE_NAMES)
 
     # ----- Step 2: merge with embeddings -----
     df_list = []
     ae_cols = None
-    for idx, image_id in enumerate(sorted(RAW_NPZ_PATHS.keys()), start=1):
+    for idx, image_id in enumerate(sorted(raw_npz_paths.keys()), start=1):
         raw_df = raw_dfs[image_id]
-        ae_path = os.path.join(EMBEDDING_DIR, f"image{idx}_ae.csv")
+        ae_path = _first_existing_embedding_csv(
+            embedding_dir, idx, variant_key
+        )
+        if ae_path is None:
+            raise FileNotFoundError(
+                f"No embedding CSV for image {idx} under {embedding_dir}. "
+                "Run transfer_learning/get_embedding.py with the matching finetune_final config."
+            )
         merged, ae_cols = merge_with_ae(raw_df, ae_path, image_id)
         df_list.append(merged)
 
@@ -354,41 +443,41 @@ def main():
 
     # ----- Step 4: save results and predictions -----
     res_raw.to_csv(
-        os.path.join(OUT_DIR, "logistic_raw_results.csv"), index=False
+        os.path.join(out_dir, "logistic_raw_results.csv"), index=False
     )
     res_latent.to_csv(
-        os.path.join(OUT_DIR, "logistic_latent_results.csv"), index=False
+        os.path.join(out_dir, "logistic_latent_results.csv"), index=False
     )
     res_both.to_csv(
-        os.path.join(OUT_DIR, "logistic_raw_plus_latent_results.csv"), index=False
+        os.path.join(out_dir, "logistic_raw_plus_latent_results.csv"), index=False
     )
 
     pred_raw.to_csv(
-        os.path.join(OUT_DIR, "logistic_raw_preds.csv"), index=False
+        os.path.join(out_dir, "logistic_raw_preds.csv"), index=False
     )
     pred_latent.to_csv(
-        os.path.join(OUT_DIR, "logistic_latent_preds.csv"), index=False
+        os.path.join(out_dir, "logistic_latent_preds.csv"), index=False
     )
     pred_both.to_csv(
-        os.path.join(OUT_DIR, "logistic_raw_plus_latent_preds.csv"), index=False
+        os.path.join(out_dir, "logistic_raw_plus_latent_preds.csv"), index=False
     )
 
     # Coefficients (per fold) and interpretability plots
-    coef_raw.to_csv(os.path.join(OUT_DIR, "logistic_raw_coefs.csv"), index=False)
-    coef_latent.to_csv(os.path.join(OUT_DIR, "logistic_latent_coefs.csv"), index=False)
+    coef_raw.to_csv(os.path.join(out_dir, "logistic_raw_coefs.csv"), index=False)
+    coef_latent.to_csv(os.path.join(out_dir, "logistic_latent_coefs.csv"), index=False)
     coef_both.to_csv(
-        os.path.join(OUT_DIR, "logistic_raw_plus_latent_coefs.csv"), index=False
+        os.path.join(out_dir, "logistic_raw_plus_latent_coefs.csv"), index=False
     )
 
-    save_coef_topk_plots(coef_raw, OUT_DIR, "raw", top_k=10)
-    save_coef_topk_plots(coef_latent, OUT_DIR, "latent", top_k=10)
-    save_coef_topk_plots(coef_both, OUT_DIR, "raw_plus_latent", top_k=10)
+    save_coef_topk_plots(coef_raw, out_dir, "raw", top_k=10)
+    save_coef_topk_plots(coef_latent, out_dir, "latent", top_k=10)
+    save_coef_topk_plots(coef_both, out_dir, "raw_plus_latent", top_k=10)
 
-    save_error_maps(pred_raw, OUT_DIR, "raw")
-    save_error_maps(pred_latent, OUT_DIR, "latent")
-    save_error_maps(pred_both, OUT_DIR, "raw_plus_latent")
+    save_error_maps(pred_raw, out_dir, "raw")
+    save_error_maps(pred_latent, out_dir, "latent")
+    save_error_maps(pred_both, out_dir, "raw_plus_latent")
 
-    print("\nSaved logistic experiment results to logistic_experiments_results/.")
+    print(f"\nSaved logistic experiment results to {out_dir}/")
     print("Also saved coef CSVs under logistic_*_coefs.csv, coef_plots/, error_maps/.")
 
 

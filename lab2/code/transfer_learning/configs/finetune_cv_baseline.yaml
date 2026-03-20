@@ -1,5 +1,5 @@
 seed: 42
-stage: finetune_final
+stage: finetune_cv
 use_wandb: false
 
 data:
@@ -10,9 +10,8 @@ data:
     - ../data/O013490.npz
     - ../data/O012791.npz
 
-  norm_load_path: results/transfer_learning/checkpoints_modified/pretrain/norm_stats.npz
-  pretrained_checkpoint_dir: results/transfer_learning/checkpoints_modified/pretrain
-  embedding_output_dir: results/transfer_learning/results_modified
+  norm_load_path: results/transfer_learning/checkpoints_baseline/pretrain/norm_stats.npz
+  pretrained_checkpoint_dir: results/transfer_learning/checkpoints_baseline/pretrain
 
 dataloader_train:
   batch_size: 1024
@@ -36,12 +35,12 @@ checkpoint:
   monitor: val_loss
   mode: min
   filename: finetune-{epoch:03d}-{val_loss:.4f}
-  dirpath: results/transfer_learning/checkpoints_modified/finetune
+  dirpath: results/transfer_learning/checkpoints_baseline/finetune
 
 wandb:
   project: lab2-autoencoder
   name: finetune
 
 trainer:
-  max_epochs: 5
+  max_epochs: 20
   log_every_n_steps: 200

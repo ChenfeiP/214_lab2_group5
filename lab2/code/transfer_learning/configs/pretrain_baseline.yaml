@@ -169,7 +169,7 @@ data:
     - ../data/O120204.npz
     - ../data/O120437.npz
 
-  norm_save_path: results/transfer_learning/checkpoints_modified/pretrain/norm_stats.npz
+  norm_save_path: results/transfer_learning/checkpoints_baseline/pretrain/norm_stats.npz
 
 dataloader_train:
   batch_size: 1024
@@ -193,7 +193,7 @@ checkpoint:
   monitor: 'val_loss'
   mode: 'min'
   filename: 'pretrain-{epoch:03d}-{val_loss:.4f}'
-  dirpath: 'results/transfer_learning/checkpoints_modified/pretrain'
+  dirpath: 'results/transfer_learning/checkpoints_baseline/pretrain'
 
 wandb:
   project: 'lab2-autoencoder'

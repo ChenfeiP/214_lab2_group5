@@ -1,7 +1,14 @@
-
-# python run_autoencoder.py configs/pretrain.yaml
-# python run_autoencoder.py configs/finetune_cv.yaml
-# python run_autoencoder.py configs/finetune_final.yaml
+# From lab2/code (cwd must be lab2/code so ../data and results/ resolve correctly):
+#
+# Modified (default) checkpoints under results/transfer_learning/checkpoints_modified/:
+#   python run_autoencoder.py transfer_learning/configs/pretrain.yaml
+#   python run_autoencoder.py transfer_learning/configs/finetune_cv.yaml
+#   python run_autoencoder.py transfer_learning/configs/finetune_final.yaml
+#
+# Baseline:
+#   python run_autoencoder.py transfer_learning/configs/pretrain_baseline.yaml
+#   python run_autoencoder.py transfer_learning/configs/finetune_cv_baseline.yaml
+#   python run_autoencoder.py transfer_learning/configs/finetune_final_baseline.yaml
 
 import numpy as np
 import sys
