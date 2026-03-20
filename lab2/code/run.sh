@@ -116,8 +116,9 @@ else:
 PY
 
 
-
-
+# ========= EDA =========
+echo "[INFO] Running EDA ..."
+python eda.py
 
 
 # ========= transfer learning =========
