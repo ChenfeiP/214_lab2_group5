@@ -149,5 +149,8 @@ PART3_POST_LR_JOBID=$(
 )
 echo "[INFO] part3 post-LR job id: $PART3_POST_LR_JOBID"
 
+echo "[INFO] Run LightGBM model..."
+python lightgbm_mod.py
+
 echo "[INFO] Deactivating environment: $ENV_NAME"
 conda deactivate

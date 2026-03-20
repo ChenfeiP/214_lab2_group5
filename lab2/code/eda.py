@@ -288,7 +288,7 @@ def make_syn_ftr_table(syn_df_cloud, syn_df_clear):
     plt.close()
 
 
-def train_val_test_split(labeled_df, random_state):
+def train_val_test_split(tot_labeled_df, random_state, save=False):
     """
     Split data into training, validation, and testing sets with
     60, 20, and 20 percent of the labeled image pixels in each.
@@ -296,28 +296,32 @@ def train_val_test_split(labeled_df, random_state):
     as much variation as possible in the labeled images, we randomly
     assign pixels from each image such that they match the 60/20/20 
     training/validation/testing split. This is a medium between
-    group-based and random splits. Write the result to 
+    group-based and random splits. If asked to save, write the result to 
     code/train_val_test_split.npz as three numpy arrays for 
-    training, validation, and testing, and return a list of the three
-    in Pandas format.
+    training, validation, and testing. Return a tuple of the six
+    dataframes (i.e., X_train, y_train, X_val, y_val, X_test, y_test).
 
     Parameters:
-        labeled_df (pd.DataFrame): A Pandas dataframe of the pixels
-            and their features for only the labeled images.
+        tot_labeled_df (pd.DataFrame): A Pandas dataframe of the pixels
+            and their features for only the labeled images, excluding
+            the unlabeled pixels.
         random_state (int): An integer to define the random
             states of our train/test splits for reproducibility.
+        save (bool): Whether to write the result to a .npz file.
     
     Returns:
-        List[pd.DataFrame]: A list of training, validation, and
-            testing Pandas Dataframes.
+        Tuple[pd.DataFrame]: A tuple of feature/target pairs
+            of Pandas dataframes associated with training, validation,
+            and testng in that order.
     """
     # Initialize a list of lists to store the image-based splits.
     splits_by_im = []
 
     # Iterate through expert labeled images and do the same to each.
-    for im in labeled_df["Image"].unique():
+    for im in tot_labeled_df["Image"].unique():
         # Randomly split labeled_df into 80/20 train/test split.
-        tt_split = train_test_split(labeled_df[labeled_df["Image"] == im], 
+        tt_split = train_test_split(tot_labeled_df[tot_labeled_df["Image"] 
+                                                   == im], 
                                     train_size=0.8,
                                     random_state=random_state)
 
@@ -334,22 +338,37 @@ def train_val_test_split(labeled_df, random_state):
                          for im in range(len(splits_by_im))])
                          for split in range(len(splits_by_im[0]))]
 
-    # Drop image labels from all three splits to avoid training
-    # upon it.
-    all_splits = [df.drop(columns=["Image"]) for df in all_splits]
+    # Drop image and coordinate labels from all three splits to 
+    # avoid training upon them, as long as they are in the splits
+    # in the first place.
+    drop_list = ["Image"] + COORDS
+    drop_list = list(filter(lambda x: x in all_splits[0].columns, drop_list))
+    all_splits = [df.drop(columns=drop_list) 
+                  for df in all_splits]
+    
+    # If asked to save, write the train/val/test splits to a 
+    # .npz file.
+    if save:
+        # Extract and name the train/val/test splits as numpy arrays.
+        train = all_splits[0].to_numpy(dtype=np.float32)
+        val = all_splits[1].to_numpy(dtype=np.float32)
+        test = all_splits[2].to_numpy(dtype=np.float32)
 
-    # Extract and name the train/val/test splits as numpy arrays.
-    train = all_splits[0].to_numpy(dtype=np.float32)
-    val = all_splits[1].to_numpy(dtype=np.float32)
-    test = all_splits[2].to_numpy(dtype=np.float32)
+        np.savez_compressed("train_val_test_split.npz", train=train,
+                            validation=val,
+                            test=test)
+    
+    # Make a list to store the X and y splits.
+    xy_splits = []
 
-    # Write the train/val/test splits to a .npz file.
-    np.savez_compressed("train_val_test_split.npz", train=train,
-                        validation=val, 
-                        test=test)
+    # Iterate through the splits, split them into X and y (i.e., features
+    # and label), and append the results to xy_splits.
+    for im in range(len(tot_labeled_df["Image"].unique())):
+        xy_splits.append(all_splits[im].iloc[:, :-1])
+        xy_splits.append(all_splits[im].iloc[:, -1:])
 
-    # Return the list of splits.
-    return all_splits
+    # Return xy_splits as a tuple.
+    return tuple(xy_splits)
 
 
 # Run the functions needed to generate the figures.
@@ -382,17 +401,22 @@ if __name__ == "__main__":
     plot_rad_dist(rad_df)
 
     # Next, drop the unlabeled pixels from the labeled dataframe.
-    tot_labeled_df = labeled_df[labeled_df["Expert Label"] != 0]
+    tot_labeled_df = labeled_df[labeled_df[EXP_LAB] != 0]
+
+    # Generate train/val/test splits for the labeledimages
+    # and write them to code/train_val_test_split.npz.
+    # Use a random state of 1 for reproducibility.
+    train_val_test_split(labeled_df, 1, save=True)
 
     # Recode the labels as Cloud and Clear.
-    tot_labeled_df["Expert Label"] = tot_labeled_df["Expert Label"].replace({
+    tot_labeled_df[EXP_LAB] = tot_labeled_df[EXP_LAB].replace({
         1: 'Cloud',
         -1: 'Clear'
     })
 
     # Regenerate radiance dataframe with only labeled pixels
     # but keep labels this time.
-    rad_df_tot_lab = tot_labeled_df[rad_ftrs + ["Expert Label"]]
+    rad_df_tot_lab = tot_labeled_df[rad_ftrs + [EXP_LAB]]
 
     # Change the column names to get rid of the redundant
     # "Radiance Angle" at the start.
@@ -413,7 +437,3 @@ if __name__ == "__main__":
     # Make the synthetic feature distribution comparison table.
     make_syn_ftr_table(syn_df_cloud, syn_df_clear)
 
-    # Generate train/val/test splits for the labeledimages
-    # and write them to code/train_val_test_split.npz.
-    # Use a random state of 1 for reproducibility.
-    train_val_test_split(labeled_df, 1)
