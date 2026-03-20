@@ -288,7 +288,7 @@ def make_syn_ftr_table(syn_df_cloud, syn_df_clear):
     plt.close()
 
 
-def train_val_test_split(pixel_df):
+def train_val_test_split(labeled_df, random_state):
     """
     Split data into training, validation, and testing sets with
     60, 20, and 20 percent of the labeled image pixels in each.
@@ -296,11 +296,16 @@ def train_val_test_split(pixel_df):
     as much variation as possible in the labeled images, we randomly
     assign pixels from each image such that they match the 60/20/20 
     training/validation/testing split. This is a medium between
-    group-based and random splits.
+    group-based and random splits. Write the result to 
+    code/train_val_test_split.npz as three numpy arrays for 
+    training, validation, and testing, and return a list of the three
+    in Pandas format.
 
     Parameters:
         labeled_df (pd.DataFrame): A Pandas dataframe of the pixels
-        and their features for only the labeled images.
+            and their features for only the labeled images.
+        random_state (int): An integer to define the random
+            states of our train/test splits for reproducibility.
     
     Returns:
         List[pd.DataFrame]: A list of training, validation, and
@@ -313,11 +318,13 @@ def train_val_test_split(pixel_df):
     for im in labeled_df["Image"].unique():
         # Randomly split labeled_df into 80/20 train/test split.
         tt_split = train_test_split(labeled_df[labeled_df["Image"] == im], 
-                                    train_size=0.8)
+                                    train_size=0.8,
+                                    random_state=random_state)
 
         # Split training set into new training set and validation set with
         # 80/20 split.
-        tv_split = train_test_split(tt_split[0], train_size=0.8)
+        tv_split = train_test_split(tt_split[0], train_size=0.75,
+                                    random_state=random_state)
 
         # Combine results to get 60/20/20 train/val/test split.
         splits_by_im.append([tv_split[0], tv_split[1], tt_split[1]])
@@ -330,6 +337,16 @@ def train_val_test_split(pixel_df):
     # Drop image labels from all three splits to avoid training
     # upon it.
     all_splits = [df.drop(columns=["Image"]) for df in all_splits]
+
+    # Extract and name the train/val/test splits as numpy arrays.
+    train = all_splits[0].to_numpy(dtype=np.float32)
+    val = all_splits[1].to_numpy(dtype=np.float32)
+    test = all_splits[2].to_numpy(dtype=np.float32)
+
+    # Write the train/val/test splits to a .npz file.
+    np.savez_compressed("train_val_test_split.npz", train=train,
+                        validation=val, 
+                        test=test)
 
     # Return the list of splits.
     return all_splits
@@ -395,3 +412,8 @@ if __name__ == "__main__":
 
     # Make the synthetic feature distribution comparison table.
     make_syn_ftr_table(syn_df_cloud, syn_df_clear)
+
+    # Generate train/val/test splits for the labeledimages
+    # and write them to code/train_val_test_split.npz.
+    # Use a random state of 1 for reproducibility.
+    train_val_test_split(labeled_df, 1)
