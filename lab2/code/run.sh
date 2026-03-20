@@ -109,7 +109,7 @@ PART3_POST_TL_JOBID=$(
 )
 echo "[INFO] part3 post-TL job id: $PART3_POST_TL_JOBID"
 
-# ========= Model A : Random Forest (unchanged: after modified finetune_final only) =========
+# ========= Model A : Random Forest  =========
 echo "[INFO] Submitting random forest jobs..."
 RF_JOBID=$(
     sbatch --dependency=afterok:"$FINETUNE_FINAL_MOD_JOBID" random_forest/job_rf.sh | awk '{print $4}'
