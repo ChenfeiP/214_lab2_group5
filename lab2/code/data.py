@@ -16,7 +16,20 @@ def save_norm(norm, path):
 
 def make_data(patch_size=9, path="../image_data_float32/*.npz", norm=None, 
               return_norm=False, remove_labels=True):
-    
+    """
+    Load the image data and create patches from it.
+    Args:
+        patch_size: The size of the patches to create.
+        path: The filepath from which to get the float32 images.
+        norm: The norm to use.
+        return_norm: Whether to return the norm.
+        remove_labels: Whether to remove labels (Note: If we don't
+        remove labels, we return patches as an empty list).
+
+    Returns:
+        images_long: A list of numpy arrays of the original images.
+        patches: A list of lists of patches for each image.
+    """    
     # 1. load data
     if isinstance(path, str):
         path = sorted(glob.glob(path))

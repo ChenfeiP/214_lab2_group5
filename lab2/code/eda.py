@@ -306,17 +306,23 @@ def train_val_test_split(pixel_df):
         List[pd.DataFrame]: A list of training, validation, and
             testing Pandas Dataframes.
     """
-    from sklearn.model_selection import train_test_split
+    # Initialize a list of lists to store all the splits.
+    all_splits = []
 
-    # Randomly split labeled_df into 80/20 train/test split.
-    tt_split = train_test_split(labeled_df, train_size=0.8)
+    # Iterate through expert labeled images and do the same to each.
+    for im in labeled_df["Image"].unique():
+        # Randomly split labeled_df into 80/20 train/test split.
+        tt_split = train_test_split(labeled_df[labeled_df["Image"] == im], 
+                                    train_size=0.8)
 
-    # Split training set into new training set and validation set with
-    # 80/20 split.
-    tv_split = train_test_split(tt_split[0], train_size=0.8)
+        # Split training set into new training set and validation set with
+        # 80/20 split.
+        tv_split = train_test_split(tt_split[0], train_size=0.8)
 
-    # Combine results to get 60/20/20 train/val/test split.
-    ttv_split = [tv_split[0], tv_split[1], tt_split[1]]
+        # Combine results to get 60/20/20 train/val/test split.
+        all_splits.append([tv_split[0], tv_split[1], tt_split[1]])
+    
+    # 
 
     # Drop image labels from all three splits to avoid training
     # upon it.
