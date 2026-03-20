@@ -182,6 +182,7 @@ def plot_rad_dist(rad_df):
 
     # Save figure.
     plt.savefig(FIGS + "radiance_dist.jpg")
+    plt.close()
 
 
 def plot_rad_dist_by_label(rad_df_tot_lab):
