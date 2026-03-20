@@ -1,8 +1,17 @@
-# EXAMPLE USAGE:
-# python get_embedding.py configs/finetune_final.yaml checkpoints/finetune/final/final-004.ckpt
+# EXAMPLE (cwd = lab2/code):
+#   python transfer_learning/get_embedding.py \\
+#     transfer_learning/configs/finetune_final.yaml \\
+#     results/transfer_learning/checkpoints_modified/finetune/final/final-004.ckpt
+#
+# Baseline checkpoints/embeddings: use configs/finetune_final_baseline.yaml and
+#   results/transfer_learning/checkpoints_baseline/finetune/...
 
 import sys
 import os
+
+_CODE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if _CODE not in sys.path:
+    sys.path.insert(0, _CODE)
 import torch
 import pandas as pd
 import numpy as np
@@ -80,7 +89,9 @@ for i in tqdm(range(len(images_long))):
 
 print("Saving the embeddings")
 # save the embeddings as csv
-output_dir = config["data"].get("embedding_output_dir", "results")
+output_dir = config["data"].get(
+    "embedding_output_dir", "results/transfer_learning/results_modified"
+)
 os.makedirs(output_dir, exist_ok=True)
 for i in tqdm(range(len(images_long))):
     embedding_df = pd.DataFrame(

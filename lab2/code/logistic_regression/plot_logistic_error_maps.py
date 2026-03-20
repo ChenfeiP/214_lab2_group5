@@ -5,18 +5,26 @@ Plot spatial misclassification maps from logistic_experiments *preds.csv.
 Each row should have: y, x, label, image_id, prob_cloud, pred, is_error
 
 Usage (from lab2/code):
-  python plot_logistic_error_maps.py \\
-    --preds_csv logistic_experiments_results_baseline/logistic_latent_preds.csv \\
-    --out_dir logistic_experiments_results_baseline/error_maps_latent \\
+  python logistic_regression/plot_logistic_error_maps.py \\
+    --preds_csv results/part3_logistic_regression/results_modified/logistic_latent_preds.csv \\
+    --out_dir results/part3_logistic_regression/results_modified \\
     --prefix latent
 """
 
 import argparse
 import os
-
-from logistic_experiments import save_error_maps
+import sys
 
 import pandas as pd
+
+_LR_DIR = os.path.dirname(os.path.abspath(__file__))
+_CODE = os.path.dirname(_LR_DIR)
+if _CODE not in sys.path:
+    sys.path.insert(0, _CODE)
+if _LR_DIR not in sys.path:
+    sys.path.insert(0, _LR_DIR)
+
+from logistic_experiments import save_error_maps  # noqa: E402
 
 
 def main():

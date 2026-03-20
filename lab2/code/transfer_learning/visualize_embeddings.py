@@ -1,14 +1,17 @@
 #!/usr/bin/env python3
 """
 Generate PCA and t-SNE plots of embeddings for B deliverables.
-Requires: results/image1_ae.csv, image2_ae.csv, image3_ae.csv (from get_embedding.py)
-          and corresponding npz files with expert labels.
-Usage:
-  python visualize_embeddings.py -o results/pca_tsne.png
+Requires: image*_ae*.csv from get_embedding.py and labeled npz under lab2/data.
+Usage (from lab2/code):
+  python transfer_learning/visualize_embeddings.py --variant modified
 """
 
 import argparse
 import os
+from typing import List, Optional, Set
+
+_CODE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
 import numpy as np
 import pandas as pd
 import matplotlib
@@ -17,15 +20,64 @@ import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
 from sklearn.manifold import TSNE
 
+TL_RESULTS_BASELINE = os.path.join(
+    _CODE, "results", "transfer_learning", "results_baseline"
+)
+TL_RESULTS_MODIFIED = os.path.join(
+    _CODE, "results", "transfer_learning", "results_modified"
+)
 
-def load_labeled_embeddings(results_dir="results", image_data_dir="../image_data_float32"):
+
+def _lab_data_dir() -> str:
+    primary = os.path.normpath(os.path.join(_CODE, "..", "data"))
+    alt = os.path.normpath(os.path.join(_CODE, "..", "image_data_float32"))
+
+    def has_npz(d: str) -> bool:
+        try:
+            return any(name.endswith(".npz") for name in os.listdir(d))
+        except OSError:
+            return False
+
+    if os.path.isdir(primary) and has_npz(primary):
+        return primary
+    if os.path.isdir(alt):
+        return alt
+    return primary
+
+
+def _embedding_csv_candidates(results_dir: str, index_1based: int, variant: str) -> List[str]:
+    stem = f"image{index_1based}_ae"
+    names: List[str] = [f"{stem}.csv"]
+    if variant == "baseline":
+        names.insert(0, f"{stem}_baseline.csv")
+    elif variant == "modified":
+        names.insert(0, f"{stem}_modified.csv")
+    seen: Set[str] = set()
+    ordered: List[str] = []
+    for n in names:
+        if n not in seen:
+            seen.add(n)
+            ordered.append(n)
+    return [os.path.join(results_dir, n) for n in ordered]
+
+
+def _first_existing_embedding_csv(
+    results_dir: str, index_1based: int, variant: str
+) -> Optional[str]:
+    for p in _embedding_csv_candidates(results_dir, index_1based, variant):
+        if os.path.exists(p):
+            return p
+    return None
+
+
+def load_labeled_embeddings(results_dir, image_data_dir, variant):
     """Load embeddings + expert labels for the 3 labeled images.
     Align by (y, x): CSV and npz can have different row counts, so we join on coordinates."""
     labeled_ids = ["O013257", "O013490", "O012791"]
     all_emb, all_labels = [], []
     for i, img_id in enumerate(labeled_ids):
-        csv_path = os.path.join(results_dir, f"image{i+1}_ae.csv")
-        if not os.path.exists(csv_path):
+        csv_path = _first_existing_embedding_csv(results_dir, i + 1, variant)
+        if csv_path is None:
             continue
         df = pd.read_csv(csv_path)
         ae_cols = [c for c in df.columns if c.startswith("ae")]
@@ -56,13 +108,25 @@ def load_labeled_embeddings(results_dir="results", image_data_dir="../image_data
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("-i", "--input_dir", default="results")
-    parser.add_argument("-d", "--data_dir", default="../image_data_float32")
-    parser.add_argument("-o", "--output", default="results/pca_tsne.png")
+    parser.add_argument(
+        "--variant",
+        choices=("baseline", "modified"),
+        default="modified",
+    )
+    parser.add_argument("-i", "--input_dir", default=None)
+    parser.add_argument("-d", "--data_dir", default=None)
+    parser.add_argument("-o", "--output", default=None)
     parser.add_argument("--sample", type=int, default=5000)
     args = parser.parse_args()
 
-    emb, labels = load_labeled_embeddings(args.input_dir, args.data_dir)
+    variant = args.variant
+    input_dir = args.input_dir or (
+        TL_RESULTS_BASELINE if variant == "baseline" else TL_RESULTS_MODIFIED
+    )
+    data_dir = args.data_dir or _lab_data_dir()
+    output = args.output or os.path.join(input_dir, "pca_tsne.png")
+
+    emb, labels = load_labeled_embeddings(input_dir, data_dir, variant)
     if emb is None:
         print("No embedding CSVs found. Run get_embedding.py first.")
         return
@@ -102,9 +166,9 @@ def main():
     axes[1].grid(True, alpha=0.3)
 
     plt.tight_layout()
-    os.makedirs(os.path.dirname(args.output) or ".", exist_ok=True)
-    plt.savefig(args.output, dpi=150)
-    print(f"Saved {args.output}")
+    os.makedirs(os.path.dirname(output) or ".", exist_ok=True)
+    plt.savefig(output, dpi=150)
+    print(f"Saved {output}")
 
 
 if __name__ == "__main__":

@@ -1,8 +1,11 @@
 #!/bin/bash
 
-# sbatch job.sh configs/pretrain.yaml
-# sbatch job.sh configs/finetune_cv.yaml
-# sbatch job.sh configs/finetune_final.yaml
+# From lab2/code:
+#   sbatch job.sh transfer_learning/configs/pretrain.yaml
+#   sbatch job.sh transfer_learning/configs/finetune_cv.yaml
+#   sbatch job.sh transfer_learning/configs/finetune_final.yaml
+#
+# Baseline: use transfer_learning/configs/pretrain_baseline.yaml (etc.)
 
 #SBATCH --job-name=lab2-autoencoder
 #SBATCH --partition=GPU-shared

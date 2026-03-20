@@ -21,6 +21,18 @@ from typing import Dict, Optional
 
 import pandas as pd
 
+_CODE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+LR_RESULTS_BASELINE = os.path.join(
+    _CODE, "results", "part3_logistic_regression", "results_baseline"
+)
+LR_RESULTS_MODIFIED = os.path.join(
+    _CODE, "results", "part3_logistic_regression", "results_modified"
+)
+LR_COMPARISON_SUMMARY_CSV = os.path.join(
+    _CODE, "results", "part3_logistic_regression", "logistic_comparison_summary.csv"
+)
+
 
 FEATURE_SETS = {
     "raw": "logistic_raw_results.csv",
@@ -49,12 +61,20 @@ def mean_metrics(df: pd.DataFrame) -> Dict[str, Optional[float]]:
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--baseline_dir", default="logistic_experiments_results_baseline")
-    parser.add_argument("--modified_dir", default="logistic_experiments_results_modified")
+    parser.add_argument(
+        "--baseline_dir",
+        default=LR_RESULTS_BASELINE,
+        help="Directory with baseline logistic_*_results.csv (default: results/part3.../results_baseline)",
+    )
+    parser.add_argument(
+        "--modified_dir",
+        default=LR_RESULTS_MODIFIED,
+        help="Directory with modified logistic CSVs (default: results/part3.../results_modified)",
+    )
     parser.add_argument(
         "--output",
-        default="logistic_comparison_summary.csv",
-        help="Output CSV path",
+        default=LR_COMPARISON_SUMMARY_CSV,
+        help="Output CSV path (default: results/part3_logistic_regression/logistic_comparison_summary.csv)",
     )
     args = parser.parse_args()
 
