@@ -1,8 +1,8 @@
 We have all agreed on these attributions:
 
-____ worked on:
--
--
+Sixian Liu worked on:
+- Part A of transfer learning, including data preprocessing, pretraining, cross-validated fine-tuning, and final fine-tuning
+- Part A of the modeling section, specifically the Random Forest model
 
 ____ worked on:
 -
