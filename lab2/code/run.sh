@@ -69,7 +69,7 @@ for f in npz_files:
 PY
 
 # ========= EDA =========
-echo "[INFO] Running EDA ..."
+echo "[INFO] Running EDA..."
 python eda.py
 
 # ========= Transfer Learning =========
