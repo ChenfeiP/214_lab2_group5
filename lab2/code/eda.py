@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 import matplotlib.patches as mpatches
 from scipy.stats import ttest_ind
+from sklearn.model_selection import train_test_split
 
 # Make global variables for the feature names, expert labeled
 # images, and filepath to figs directory.
@@ -285,6 +286,44 @@ def make_syn_ftr_table(syn_df_cloud, syn_df_clear):
     # Save figure.
     plt.savefig(FIGS + "syn_ftr_dist_by_label.jpg")
     plt.close()
+
+
+def train_val_test_split(pixel_df):
+    """
+    Split data into training, validation, and testing sets with
+    60, 20, and 20 percent of the labeled image pixels in each.
+    To mimick the real-world prediction setting but also capture
+    as much variation as possible in the labeled images, we randomly
+    assign pixels from each image such that they match the 60/20/20 
+    training/validation/testing split. This is a medium between
+    group-based and random splits.
+
+    Parameters:
+        labeled_df (pd.DataFrame): A Pandas dataframe of the pixels
+        and their features for only the labeled images.
+    
+    Returns:
+        List[pd.DataFrame]: A list of training, validation, and
+            testing Pandas Dataframes.
+    """
+    from sklearn.model_selection import train_test_split
+
+    # Randomly split labeled_df into 80/20 train/test split.
+    tt_split = train_test_split(labeled_df, train_size=0.8)
+
+    # Split training set into new training set and validation set with
+    # 80/20 split.
+    tv_split = train_test_split(tt_split[0], train_size=0.8)
+
+    # Combine results to get 60/20/20 train/val/test split.
+    ttv_split = [tv_split[0], tv_split[1], tt_split[1]]
+
+    # Drop image labels from all three splits to avoid training
+    # upon it.
+    ttv_split = [df.drop(columns=["Image"]) for df in ttv_split]
+
+    # Return the list of splits.
+    return ttv_split
 
 
 # Run the functions needed to generate the figures.
