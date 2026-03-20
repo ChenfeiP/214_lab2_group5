@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# Example usage: python feature_engineering_plot.py
+
 import argparse
 from pathlib import Path
 
@@ -20,8 +22,8 @@ FEATURE_COLUMNS = [
     "Radiance AN",
 ]
 
-TOP_FEATURES = ["NDAI", "CORR", "SD"]  # edit me
-EXAMPLE_IMAGE_ID = "O013257"           # edit me
+TOP_FEATURES = ["NDAI", "CORR", "SD"]  
+EXAMPLE_IMAGE_ID = "O013257"           
 LABELED_IMAGE_IDS = ["O013257", "O013490", "O012791"]
 
 NPZ_COLUMNS = [
@@ -368,7 +370,7 @@ def main(image_dir, output_dir):
     plot_top3_distributions(labeled_df, top3_dist_dir)
     plot_top3_per_image(labeled_df, per_image_dir)
 
-    for feature in TOP_FEATURES[:2]:
+    for feature in TOP_FEATURES:
         plot_label_and_feature_heatmap(full_df, EXAMPLE_IMAGE_ID, feature, heatmap_compare_dir)
 
     plot_all_feature_distributions(labeled_df, all8_dist_dir)
@@ -382,11 +384,11 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Generate feature-engineering plots from labeled MISR data."
     )
-    parser.add_argument("--image_dir", type=Path, default=Path("image_data_float32"))
+    parser.add_argument("--image_dir", type=Path, default=Path("../../image_data_float32"))
     parser.add_argument(
         "--output_dir",
         type=Path,
-        default=Path("results/feature_engineering_plots"),
+        default=Path("../results/feature_engineering_plots"),
     )
     args = parser.parse_args()
     main(args.image_dir, args.output_dir)

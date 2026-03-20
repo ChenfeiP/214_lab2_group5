@@ -6,8 +6,10 @@ This repository contains code and workflows for **Lab 2**: analysis and modeling
 
 The main modeling threads in `lab2/code` are:
 
+- **Feature engineering ** — rank original MISR features, generate class-comparison plots, and build patch-aware visual diagnostics under a dedicated `lab2/feature_engineering/` workspace.
 - **Transfer learning / autoencoder pipeline** — train normalization-aware patch autoencoders, export per-pixel latent vectors for three labeled images, and run lightweight probes and visualizations.
 - **Random forest (Part 3)** — extract latent features from the modified transfer-learning model and train a supervised random forest classifier on the three labeled scenes.
+- **LDA** — compare `handcrafted`, `ae_only`, and `combined` feature sets with shrinkage LDA using grouped cross-validation.
 - **Logistic regression (Part 3)** — leave-one-image-out (LOIO) logistic models using raw bands/features only, latent features only, and their combination; compare a **baseline** vs **modified** transfer-learning setup.
 
 Results are written under `lab2/code/results/` (checkpoints, CSVs, figures, and summary tables) so experiments can be traced and compared without ad hoc paths.
@@ -80,6 +82,35 @@ Activate **`env_214`** before running Python in `lab2/code`, or ensure your Slur
 ### Working directory
 
 The canonical working directory for training configs is **`lab2/code/`** (so paths such as `../data/` and `results/` in YAML resolve correctly).
+
+The canonical working directory for the new feature-engineering scripts is **`lab2/feature_engineering/code/`**. Those scripts now write only under **`lab2/feature_engineering/results/`**, so they do not overwrite transfer-learning or Part 3 model outputs.
+
+---
+
+## Reproducing the feature-engineering workflow
+
+The feature-engineering code has been grouped into a dedicated directory:
+
+- **Code:** `lab2/feature_engineering/code/`
+- **Outputs:** `lab2/feature_engineering/results/`
+
+Run from **`lab2/feature_engineering/code`**:
+
+```bash
+cd lab2/feature_engineering/code
+
+# Quantitative ranking of the 8 original features
+python feature_engineering.py \
+  --image_dir ../../data \
+  --output_dir ../results/feature_engineering_part21
+
+# Plots for Part 1 / Part 2 write-up
+python feature_engineering_plot.py \
+  --image_dir ../../data \
+  --output_dir ../results/feature_engineering_plots
+```
+
+This stage is safe to run before the transfer-learning and Part 3 pipelines because it is read-only with respect to the `.npz` inputs and writes only into `lab2/feature_engineering/results/`.
 
 ---
 
@@ -171,6 +202,33 @@ python random_forest/part3_random_forest.py \
 
 ---
 
+## Reproducing the LDA experiments
+
+The LDA workflow uses the same three labeled images together with autoencoder latent vectors from the **modified** transfer-learning checkpoint. Outputs go to **`results/part3_lda/`**.
+
+Run from **`lab2/code`**:
+
+```bash
+cd lab2/code
+
+python extract_part3_latent_vectors.py \
+  transfer_learning/configs/finetune_final.yaml \
+  results/transfer_learning/checkpoints_modified/finetune/final/final-epoch=004.ckpt \
+  results/part3_lda/part3_latent_vectors.npz
+
+python LDA_model.py \
+  --ae-features results/part3_lda/part3_latent_vectors.npz \
+  --labeled-paths \
+    ../data/O012791.npz \
+    ../data/O013257.npz \
+    ../data/O013490.npz \
+  --outdir results/part3_lda
+```
+
+Important: the order of `--labeled-paths` should match the image order stored in the latent-vector file. Using a dedicated latent-vector path under `results/part3_lda/` keeps the LDA pipeline separate from the random-forest outputs, so the two workflows can be run independently without overwriting each other.
+
+---
+
 ## Reproducing the logistic regression experiments
 
 Logistic regression uses **labeled** pixels from the three expert-annotated scenes, merged with the embedding CSVs produced in the transfer-learning step. Outputs go to **`results/part3_logistic_regression/results_{baseline,modified}/`** (per-fold metrics, predictions, coefficients, plots, and error maps).
@@ -203,10 +261,15 @@ The summary table **`results/part3_logistic_regression/logistic_comparison_summa
 ├── README.md                 # this file
 └── lab2/
     ├── data/                 # NPZ inputs (course zip)
+    ├── feature_engineering/
+    │   ├── code/             # Part 1 / Part 2 scripts
+    │   └── results/          # Part 1 / Part 2 figures + summary tables
     ├── image_data_float32/   # optional alternate NPZ location
     └── code/
         ├── run_autoencoder.py
-        ├── run.sh            # cluster driver (conda, EDA, Slurm submit)
+        ├── run.sh            # cluster driver (EDA, feature engineering, Slurm submit)
+        ├── LDA_model.py
+        ├── job_lda.sh
         ├── transfer_learning/  # configs, get_embedding, analysis, job_post_tl.sh
         ├── logistic_regression/  # LOIO logistic, compare, job_lr.sh
         └── results/          # checkpoints, CSVs, figures (git may ignore large artifacts)

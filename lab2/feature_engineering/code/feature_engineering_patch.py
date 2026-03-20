@@ -180,7 +180,7 @@ def main_example():
     Example usage.
     Replace this with your own loading code if needed.
     """
-    # df = pd.read_csv("your_pixel_data.csv")
+    
     # df_new = engineer_patch_features(df, feature_cols=["NDAI", "CORR", "SD"])
     # print(df_new.columns)
     # print(df_new.head())

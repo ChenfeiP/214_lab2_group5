@@ -5,6 +5,9 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CODE_DIR="$SCRIPT_DIR"
 LAB2_DIR="$(cd "$CODE_DIR/.." && pwd)"
+FEATURE_ENG_DIR="$LAB2_DIR/feature_engineering"
+FEATURE_ENG_CODE_DIR="$FEATURE_ENG_DIR/code"
+FEATURE_ENG_RESULTS_DIR="$FEATURE_ENG_DIR/results"
 ENV_YAML="$CODE_DIR/environment.yaml"
 ENV_NAME="env_214"
 DATA_DIR="$LAB2_DIR/data"
@@ -13,6 +16,7 @@ RESULTS_DIR="$CODE_DIR/results"
 
 echo "[INFO] CODE_DIR    = $CODE_DIR"
 echo "[INFO] LAB2_DIR    = $LAB2_DIR"
+echo "[INFO] FEATURE_ENG_DIR = $FEATURE_ENG_DIR"
 echo "[INFO] ENV_YAML    = $ENV_YAML"
 echo "[INFO] DATA_DIR    = $DATA_DIR"
 echo "[INFO] FLOAT32_DIR = $FLOAT32_DIR"
@@ -40,12 +44,15 @@ python -V
 
 mkdir -p "$RESULTS_DIR"
 mkdir -p "$RESULTS_DIR/part3_random_forest"
+mkdir -p "$RESULTS_DIR/part3_lda"
 mkdir -p "$RESULTS_DIR/transfer_learning/comparisons"
 mkdir -p "$RESULTS_DIR/transfer_learning/results_baseline"
 mkdir -p "$RESULTS_DIR/transfer_learning/results_modified"
 mkdir -p "$RESULTS_DIR/part3_logistic_regression/results_baseline"
 mkdir -p "$RESULTS_DIR/part3_logistic_regression/results_modified"
 mkdir -p "$FLOAT32_DIR"
+mkdir -p "$FEATURE_ENG_RESULTS_DIR/feature_engineering_part21"
+mkdir -p "$FEATURE_ENG_RESULTS_DIR/feature_engineering_plots"
 
 # ========= convert npz float64 -> float32 =========
 echo "[INFO] Running float32 conversion from $DATA_DIR to $FLOAT32_DIR ..."
@@ -76,6 +83,17 @@ PY
 # ========= EDA =========
 echo "[INFO] Running EDA..."
 python eda.py
+
+# ========= Feature Engineering =========
+echo "[INFO] Running feature engineering summary..."
+python "$FEATURE_ENG_CODE_DIR/feature_engineering.py" \
+    --image_dir "$FLOAT32_DIR" \
+    --output_dir "$FEATURE_ENG_RESULTS_DIR/feature_engineering_part21"
+
+echo "[INFO] Running feature engineering plots..."
+python "$FEATURE_ENG_CODE_DIR/feature_engineering_plot.py" \
+    --image_dir "$FLOAT32_DIR" \
+    --output_dir "$FEATURE_ENG_RESULTS_DIR/feature_engineering_plots"
 
 # ========= Transfer Learning (baseline — parallel second chain for compare_transfer_results) =========
 echo "[INFO] Submitting transfer learning jobs (baseline)..."
@@ -116,7 +134,14 @@ RF_JOBID=$(
 )
 echo "[INFO] random forest job id: $RF_JOBID"
 
-# ========= Model B : Logistic Regression (after post-TL embeddings exist) =========
+# ========= Model B : LDA =========
+echo "[INFO] Submitting LDA job..."
+LDA_JOBID=$(
+    sbatch --dependency=afterok:"$FINETUNE_FINAL_MOD_JOBID" "$CODE_DIR/job_lda.sh" | awk '{print $4}'
+)
+echo "[INFO] LDA job id: $LDA_JOBID"
+
+# ========= Model C : Logistic Regression (after post-TL embeddings exist) =========
 echo "[INFO] Submitting Part 3 post-LR job (logistic_experiments + compare)..."
 PART3_POST_LR_JOBID=$(
     sbatch --dependency=afterok:"$PART3_POST_TL_JOBID" \
