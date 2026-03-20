@@ -1,0 +1,2 @@
+latent_dim,source,accuracy_mean,accuracy_std,roc_auc_mean,roc_auc_std
+8,finetune_final_004,0.68676181032413,0.0837000004333932,0.7729947499463037,0.0846516992464977
