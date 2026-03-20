@@ -306,8 +306,8 @@ def train_val_test_split(pixel_df):
         List[pd.DataFrame]: A list of training, validation, and
             testing Pandas Dataframes.
     """
-    # Initialize a list of lists to store all the splits.
-    all_splits = []
+    # Initialize a list of lists to store the image-based splits.
+    splits_by_im = []
 
     # Iterate through expert labeled images and do the same to each.
     for im in labeled_df["Image"].unique():
@@ -320,16 +320,19 @@ def train_val_test_split(pixel_df):
         tv_split = train_test_split(tt_split[0], train_size=0.8)
 
         # Combine results to get 60/20/20 train/val/test split.
-        all_splits.append([tv_split[0], tv_split[1], tt_split[1]])
+        splits_by_im.append([tv_split[0], tv_split[1], tt_split[1]])
     
-    # 
+    # Combine results across the expert labeled images.
+    all_splits = [pd.concat([splits_by_im[im][split]
+                         for im in range(len(splits_by_im))])
+                         for split in range(len(splits_by_im[0]))]
 
     # Drop image labels from all three splits to avoid training
     # upon it.
-    ttv_split = [df.drop(columns=["Image"]) for df in ttv_split]
+    all_splits = [df.drop(columns=["Image"]) for df in all_splits]
 
     # Return the list of splits.
-    return ttv_split
+    return all_splits
 
 
 # Run the functions needed to generate the figures.
