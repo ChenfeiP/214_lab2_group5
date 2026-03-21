@@ -78,17 +78,26 @@ def make_heatmap(pixel_df):
     # Exclude expert labels and image indexes when making heatmap.
     pixel_df_unlabeled = pixel_df.drop(columns=[EXP_LAB, "Image"])
 
-
+    # Abbreviate radiance angle names to avoid figure getting cut off
+    # when saved.
+    pixel_df_unlabeled.rename(lambda ftr: "Rad. Angle " + ftr[-3:]
+                          if "Radiance Angle" in ftr else ftr, axis="columns",
+                          inplace=True)
+    
     # Make a correlation heatmap (we don't need to set numeric_only in
     # corr to True since every entry in pixel_df_unlabeled is numeric anyway),
     # rounding the displayed correlations to 2 decimal places.
     sns.heatmap(pixel_df_unlabeled.corr(), cmap="coolwarm", fmt=".2f", 
                 annot=True)
+
     # Add a title to the plot.
     plt.title("Correlation Heatmap Between Main Features (All Images)")
     # Change size of x and y ticks since they are too big by default.
     plt.xticks(fontsize=8)
     plt.yticks(fontsize=8)
+
+    # Use tight_layout since figure keeps getting cut off when saved.
+    plt.tight_layout()
 
     # Save the figure in the figures directory.
     plt.savefig(FIGS + "heatmap.jpg")
@@ -187,8 +196,8 @@ def plot_rad_dist(rad_df):
 
 
 def plot_rad_dist_by_label(rad_df_tot_lab):
-    """
-    Make boxplots of radiance angle distributions for all 5 angles
+    """""
+    Make boxplots of Radiance Angle distributions for all 5 angles
     split between whether the pixels were labeled cloudy or clear
     and save the figure.
 
