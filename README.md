@@ -273,6 +273,7 @@ The summary table **`results/part3_logistic_regression/logistic_comparison_summa
         ├── run_autoencoder.py
         ├── run.sh            # cluster driver (EDA, feature engineering, Slurm submit)
         ├── transfer_learning/  # configs, get_embedding, analysis, job_post_tl.sh
+        ├── random_forest/  
         ├── logistic_regression/  # LOIO logistic, compare, job_lr.sh
         └── results/          # checkpoints, CSVs, figures (git may ignore large artifacts)
 ```
