@@ -20,11 +20,14 @@ FTRS = COORDS + SYN_FTRS + ["Radiance Angle " + ang for ang in RAD_ANGLES] \
     + [EXP_LAB]
 FIGS = "../figs/"
 
-def lightgbm_main():
+def lightgbm_main(random_state):
     """
     Perform 3-fold cross-validation and save ROC and feature importance
     curves for them to the figures directory. Also print the
     average accuracy across all the folds.
+
+    Parameters:
+        random_state (int): The random_state used for reproducibility.
     """
     # Start by loading in autoencoder latent vector.
     lat_vec = np.load("results/part3_latent_vectors.npz")
@@ -66,9 +69,6 @@ def lightgbm_main():
 
     # Update lat_df to include image label.
     lat_df = combined_df.drop(columns=FTRS[2:-1])
-
-    # Set random state to 1 for reproducibility.
-    random_state = 1
 
     # Make a 1 x 3 grid of subplots for ROC curves.
     fig, axs = plt.subplots(1, 3, figsize=(10, 4), sharex=True, sharey=True)
@@ -134,10 +134,15 @@ def lightgbm_main():
             # Calculate accuracy for this fold and store it.
             accuracy = accuracy_score(y_fold_test, y_pred_labels)
             metrics.append(accuracy)
+        
+            # Make dictionary mapping df_idx to df names.
+            df_dict = {0: "Given Features",
+                    1: "Autoencoder Features",
+                    2: "Combined Features"}
 
         # Calculate the average accuracy across all folds.
         average_accuracy = np.mean(metrics)
-        print(f'Average Accuracy {df_idx}: {round(average_accuracy, 5)}')
+        print(f"Average Accuracy with {df_dict[df_idx]}: {round(average_accuracy, 5)}")
 
         # Compute ROC curve and AUC.
         fpr, tpr, _ = roc_curve(y_true, y_scores)
@@ -153,12 +158,14 @@ def lightgbm_main():
         train_data_full = lgb.Dataset(X_cv, label=y_cv)
         bst_full = lgb.train(params, train_data_full)
 
-        # Plot feature importance (gain) on subplot.
+        # Plot feature importance (gain) on subplot but get rid
+        # of x_axis labels.
         lgb.plot_importance(
             bst_full,
             importance_type="gain",
             ax=axs_imp[df_idx],
             title=subplot_titles[df_idx],
+            xlabel=None,
             max_num_features=10,
             grid=False
         )
@@ -167,18 +174,18 @@ def lightgbm_main():
         for text in axs_imp[df_idx].texts:
             text.set_visible(False)
 
-        # Clean axis labels and make feature labels smaller.
-        axs_imp[df_idx].set_xlabel("Feature Importance (Gain)")
-        axs_imp[df_idx].set_ylabel("")
-        axs_imp[df_idx].tick_params(axis='y', labelsize=8)
+        # Clean axis labels and make feature labels smaller
+        # since they were causing clutter by default.
+        axs_imp[df_idx].tick_params(axis="y", labelsize=8)
 
     # Make shared axis labels and overall title for ROC curves.
     fig.supxlabel("False Positive Rate")
     fig.supylabel("True Positive Rate")
     fig.suptitle("ROC Curves for LightGBM Model with 3-Fold CV")
 
-    # Make overall title for feature importance plots.
+    # Set overall title and axis labels for feature importance plots.
     fig_imp.suptitle("Feature Importance (Gain) for LightGBM Models")
+    fig_imp.supxlabel("Feature Importance (Gain)")
 
     # Use tight layout to avoid overlapping and show the plots.
     plt.tight_layout()
@@ -192,4 +199,5 @@ def lightgbm_main():
 
 # Use main clause simply to run lightgbm function.
 if __name__ == "__main__":
-    lightgbm_main()
+    # Set random state to 1 for reproducibility.
+    lightgbm_main(1)
