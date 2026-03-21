@@ -1,0 +1,26 @@
+% Collaboration / contribution statement.
+% Add to main report after \appendix or under Academic honesty, e.g.:
+%   \subsection{Collaboration}
+%   \input{collaboration}
+%
+% If the course forbids names in the submitted PDF, replace names with
+% "Group member 1" etc. before compiling the version you turn in.
+
+\subsection{Collaboration and individual contributions}
+
+\paragraph{Chenfei Peng (my contributions).}
+I was responsible for the following parts of the project:
+
+\begin{itemize}[nosep]
+  \item \textbf{Transfer learning (Part B).} After the autoencoder pipeline (pretraining and fine-tuning) was trained, I implemented and ran the downstream analysis of the learned representations: exporting per-pixel embedding CSVs for the three labeled MISR scenes, training a simple probe classifier on embeddings to summarize discriminability (accuracy and ROC--AUC), building the latent-dimension summary table, and generating PCA and t-SNE visualizations of embeddings against expert labels. I also set up the comparison between the baseline and modified training configurations (e.g., checkpoint and results directory layout, summary tables for probe metrics).
+  \item \textbf{Modeling (Part B).} I implemented leave-one-image-out logistic regression on the three annotated images, using three feature sets: raw spectral--angular features only, autoencoder latent features only, and raw plus latent features jointly. I produced per-fold metrics, prediction tables, coefficient summaries, interpretability plots, and spatial error maps, and compared baseline versus modified embeddings in a single summary table.
+  \item \textbf{Reproducibility and orchestration.} I centralized paths under \texttt{lab2/code/results/}, added Slurm helper scripts for post-training analysis and logistic jobs, updated \texttt{run.sh} and the README with end-to-end reproduction steps for the transfer-learning analysis and logistic experiments, and aligned configuration paths for baseline and modified runs so results do not overwrite each other.
+\end{itemize}
+
+% --- Optional: paste teammates’ bullets here from collaboration.txt for one combined file ---
+%
+% \paragraph{Sixian Liu.} Part A of transfer learning (preprocessing, pretrain, CV and final fine-tuning); Part A of modeling (Random Forest).
+%
+% \paragraph{Victoria Karai.} Report introduction; exploratory data analysis; Part D of modeling (LightGBM).
+%
+% \paragraph{Ruoyang Li.} Feature engineering (informative predictors and new features); LDA model and associated analysis.

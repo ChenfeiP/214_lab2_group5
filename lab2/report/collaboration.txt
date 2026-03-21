@@ -14,7 +14,9 @@ Ruoyang Li worked on:
 - Feature Engineering Part 2: create new features
 - Modeling: LDA model and the analysis
 
-____ worked on:
--
--
+Chenfei Peng worked on:
+- Part B of transfer learning (embedding export, probes, visualizations, baseline vs modified comparison)
+- Part B of modeling: logistic regression (Leave-One-Image-Out; raw / latent / combined features) and related analysis
+- Reproducibility: results paths, Slurm post-job scripts, README design
+
 
