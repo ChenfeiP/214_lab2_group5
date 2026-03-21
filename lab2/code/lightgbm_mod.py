@@ -166,6 +166,7 @@ def lightgbm_main(random_state):
             ax=axs_imp[df_idx],
             title=subplot_titles[df_idx],
             xlabel=None,
+            ylabel=None,
             max_num_features=10,
             grid=False
         )
@@ -186,6 +187,7 @@ def lightgbm_main(random_state):
     # Set overall title and axis labels for feature importance plots.
     fig_imp.suptitle("Feature Importance (Gain) for LightGBM Models")
     fig_imp.supxlabel("Feature Importance (Gain)")
+    fig_imp.supylabel("Feature")
 
     # Use tight layout to avoid overlapping and show the plots.
     plt.tight_layout()
