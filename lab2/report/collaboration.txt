@@ -9,9 +9,10 @@ Victoria Karai worked on:
 - Exploratory data analysis
 - Part D of the modeling section, specifically the LightGBM model 
 
-____ worked on:
--
--
+Ruoyang Li worked on:
+- Feature Engineering Part 1: finding informative predictors
+- Feature Engineering Part 2: create new features
+- Modeling: LDA model and the analysis
 
 ____ worked on:
 -
